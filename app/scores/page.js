@@ -4,17 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getGrade } from "@/lib/helpers";
 
-export default function ScoresPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-sand-100 flex items-center justify-center"><div className="w-10 h-10 border-4 border-forest-800 border-t-transparent rounded-full animate-spin" /></div>}>
-      <ScoresContent />
-    </Suspense>
-  );
-}
-
 function ScoresContent() {
-
-export default function ScoresPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedClass = searchParams.get("class");
@@ -31,7 +21,6 @@ export default function ScoresPage() {
   const [loading, setLoading] = useState(true);
   const [schoolId, setSchoolId] = useState(null);
 
-  // Load initial data
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -46,7 +35,6 @@ export default function ScoresPage() {
       if (!user) { router.push("/login"); return; }
       setSchoolId(user.school_id);
 
-      // Get active term
       const { data: sessions } = await supabase
         .from("sessions")
         .select("id")
@@ -64,7 +52,6 @@ export default function ScoresPage() {
         setActiveTerm(term);
       }
 
-      // Get classes
       const { data: classData } = await supabase
         .from("classes")
         .select("*")
@@ -81,11 +68,9 @@ export default function ScoresPage() {
     init();
   }, []);
 
-  // Load class subjects + students
   const loadClassData = async (classId, termId) => {
     const tId = termId || activeTerm?.id;
 
-    // Get subjects
     const { data: subjectData } = await supabase
       .from("subjects")
       .select("*")
@@ -93,7 +78,6 @@ export default function ScoresPage() {
       .order("sort_order");
     setSubjects(subjectData || []);
 
-    // Get students
     const { data: studentData } = await supabase
       .from("students")
       .select("*")
@@ -102,7 +86,6 @@ export default function ScoresPage() {
       .order("last_name");
     setStudents(studentData || []);
 
-    // Load existing scores for this class + term
     if (tId && studentData?.length && subjectData?.length) {
       const studentIds = studentData.map((s) => s.id);
       const subjectIds = subjectData.map((s) => s.id);
@@ -170,7 +153,6 @@ export default function ScoresPage() {
     return t1 + t2 + ex;
   };
 
-  // Save scores to Supabase
   const handleSave = async () => {
     if (!activeTerm || !selectedSubjectId) return;
     setSaving(true);
@@ -209,7 +191,6 @@ export default function ScoresPage() {
     setSaving(false);
   };
 
-  // Subject completion tracking
   const getSubjectCompletion = (subjectId) => {
     let filled = 0;
     students.forEach((s) => {
@@ -232,7 +213,6 @@ export default function ScoresPage() {
 
   return (
     <div className="min-h-screen bg-sand-100">
-      {/* Header */}
       <div className="bg-gradient-to-br from-forest-800 to-forest-700 text-white px-5 pt-4 pb-5">
         <div className="flex items-center gap-3 mb-3">
           <button onClick={() => router.push("/dashboard")} className="text-white/60 hover:text-white text-lg">←</button>
@@ -242,7 +222,6 @@ export default function ScoresPage() {
           </div>
         </div>
 
-        {/* Class selector */}
         <select
           value={selectedClassId}
           onChange={(e) => handleClassChange(e.target.value)}
@@ -257,7 +236,6 @@ export default function ScoresPage() {
 
       {selectedClassId && subjects.length > 0 && (
         <div className="px-4 py-4">
-          {/* Subject pills */}
           <div className="mb-4">
             <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Subject</div>
             <div className="flex gap-2 flex-wrap">
@@ -287,10 +265,8 @@ export default function ScoresPage() {
             </div>
           </div>
 
-          {/* Score Grid */}
           {selectedSubjectId && (
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              {/* Header */}
               <div className="grid grid-cols-[minmax(100px,1.5fr)_repeat(4,1fr)] bg-sand-200 px-3 py-2.5 text-[10px] font-bold text-gray-500 uppercase tracking-wide">
                 <div>Student</div>
                 <div className="text-center">Test 1<br /><span className="font-normal opacity-60">/ 20</span></div>
@@ -299,7 +275,6 @@ export default function ScoresPage() {
                 <div className="text-center">Total<br /><span className="font-normal opacity-60">/ 100</span></div>
               </div>
 
-              {/* Rows */}
               {students.map((student, idx) => {
                 const s = getStudentScore(student.id);
                 const total = getTotal(student.id);
@@ -312,7 +287,6 @@ export default function ScoresPage() {
                       idx % 2 === 0 ? "bg-white" : "bg-sand-50"
                     }`}
                   >
-                    {/* Name */}
                     <div className="flex items-center gap-2">
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${
                         student.fees_paid ? "bg-forest-100 text-forest-800" : "bg-red-100 text-red-700"
@@ -329,7 +303,6 @@ export default function ScoresPage() {
                       </div>
                     </div>
 
-                    {/* Score inputs */}
                     {["test1", "test2", "exam"].map((field) => (
                       <div key={field} className="flex justify-center">
                         <input
@@ -344,7 +317,6 @@ export default function ScoresPage() {
                       </div>
                     ))}
 
-                    {/* Total */}
                     <div className="text-center">
                       <div className={`text-base font-extrabold ${
                         total === null ? "text-gray-300"
@@ -364,7 +336,6 @@ export default function ScoresPage() {
             </div>
           )}
 
-          {/* Save Button */}
           <button
             onClick={handleSave}
             disabled={saving}
@@ -391,5 +362,17 @@ export default function ScoresPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ScoresPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-sand-100 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-forest-800 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <ScoresContent />
+    </Suspense>
   );
 }
