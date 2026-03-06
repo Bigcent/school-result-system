@@ -1,8 +1,18 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getGrade } from "@/lib/helpers";
+
+export default function ScoresPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-sand-100 flex items-center justify-center"><div className="w-10 h-10 border-4 border-forest-800 border-t-transparent rounded-full animate-spin" /></div>}>
+      <ScoresContent />
+    </Suspense>
+  );
+}
+
+function ScoresContent() {
 
 export default function ScoresPage() {
   const router = useRouter();
