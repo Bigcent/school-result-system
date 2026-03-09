@@ -19,15 +19,44 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* ─── Print styles for report card ─── */
+/* ─── Print styles ─── */
 @media print {
   body {
-    background: white;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
   .no-print {
     display: none !important;
   }
-  .print-only {
-    display: block !important;
+
+  /* Remove shadows and rounded corners for cleaner print */
+  .shadow-sm, .shadow-md {
+    box-shadow: none !important;
+  }
+
+  /* Ensure page fits */
+  .min-h-screen {
+    min-height: auto !important;
+  }
+
+  /* Keep backgrounds visible in print */
+  div[style*="background"], 
+  div[style*="linear-gradient"] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    margin: 10mm;
+    size: A4;
   }
 }

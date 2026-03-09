@@ -140,9 +140,20 @@ export default function ResultsPage() {
               style={view === "report" ? { color: theme.primary } : {}}>📄 Report Card</button>
           </div>
 
+          {/* ═══ RANKING ═══ */}
           {view === "ranking" && (
             <>
-              <div className="grid grid-cols-3 gap-3 mb-4">
+              {/* Print header - only visible when printing */}
+              <div className="hidden print:block text-center mb-4">
+                <div className="text-lg font-extrabold" style={{ color: theme.primary }}>{school?.name}</div>
+                {school?.address && <div className="text-xs text-gray-500">{school.address}</div>}
+                <div className="text-sm font-bold mt-2" style={{ color: theme.secondary }}>
+                  Class Ranking — {className} — {activeSession?.name} {activeTerm?.name}
+                </div>
+                <div className="text-xs text-gray-400 mt-1">{students.length} students</div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 mb-4 no-print">
                 {[{ label: "Students", value: students.length, color: theme.primary },
                   { label: "Highest", value: classResults[0]?.grandTotal || "—", color: theme.secondary },
                   { label: "Class Avg", value: classAvg, color: theme.accent }
@@ -181,10 +192,19 @@ export default function ResultsPage() {
                   );
                 })}
               </div>
-              <p className="text-[10px] text-gray-400 text-center mt-2">Tap a student to view report card</p>
+
+              <p className="text-[10px] text-gray-400 text-center mt-2 no-print">Tap a student to view report card</p>
+
+              {/* Print button for ranking */}
+              <button onClick={() => window.print()}
+                className="w-full mt-4 py-3 text-white rounded-xl font-bold text-sm hover:opacity-90 no-print"
+                style={{ background: theme.primary }}>
+                🖨️ Print Class Ranking
+              </button>
             </>
           )}
 
+          {/* ═══ REPORT CARD ═══ */}
           {view === "report" && (
             <>
               <div className="mb-4 no-print">
