@@ -153,10 +153,12 @@ export default function DashboardPage() {
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Admin</h2>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { href: "/admin/school", icon: "🏫", label: "School Info", desc: "Name, address, theme" },
+                { href: "/admin/school", icon: "🏫", label: "School Info", desc: "Name, theme, settings" },
+                { href: "/admin/sessions", icon: "📅", label: "Sessions", desc: "Sessions & terms" },
                 { href: "/admin/classes", icon: "📋", label: "Classes", desc: "Add & manage classes" },
                 { href: "/admin/subjects", icon: "📖", label: "Subjects", desc: "Assign subjects to classes" },
-                { href: "/admin/students", icon: "👨‍🎓", label: "Students", desc: "Register & manage students" },
+                { href: "/admin/students", icon: "👨‍🎓", label: "Students", desc: "Register & manage" },
+                { href: "/admin/attendance", icon: "📝", label: "Attendance", desc: "Days present per student" },
               ].map((item) => (
                 <button key={item.href} onClick={() => router.push(item.href)}
                   className="bg-white rounded-2xl p-4 text-left shadow-sm hover:shadow-md transition-shadow">
