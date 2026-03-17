@@ -99,6 +99,7 @@ export default function ResultsPage() {
 
   const className = classes.find((c) => c.id === selectedClassId)?.name || "";
   const showPosition = school?.show_position !== false;
+  const logoUrl = school?.logo_url || null;
 
   if (loading || themeLoading) {
     return (
@@ -143,10 +144,14 @@ export default function ResultsPage() {
           {/* ═══ RANKING ═══ */}
           {view === "ranking" && (
             <>
-              {/* Print header - only visible when printing */}
               <div className="hidden print:block text-center mb-4">
-                <div className="text-lg font-extrabold" style={{ color: theme.primary }}>{school?.name}</div>
-                {school?.address && <div className="text-xs text-gray-500">{school.address}</div>}
+                <div className="flex items-center justify-center gap-3 mb-1">
+                  {logoUrl && <img src={logoUrl} alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />}
+                  <div>
+                    <div className="text-lg font-extrabold" style={{ color: theme.primary }}>{school?.name}</div>
+                    {school?.address && <div className="text-xs text-gray-500">{school.address}</div>}
+                  </div>
+                </div>
                 <div className="text-sm font-bold mt-2" style={{ color: theme.secondary }}>
                   Class Ranking — {className} — {activeSession?.name} {activeTerm?.name}
                 </div>
@@ -192,10 +197,8 @@ export default function ResultsPage() {
                   );
                 })}
               </div>
-
               <p className="text-[10px] text-gray-400 text-center mt-2 no-print">Tap a student to view report card</p>
 
-              {/* Print button for ranking */}
               <button onClick={() => window.print()}
                 className="w-full mt-4 py-3 text-white rounded-xl font-bold text-sm hover:opacity-90 no-print"
                 style={{ background: theme.primary }}>
@@ -219,8 +222,14 @@ export default function ResultsPage() {
 
               {selectedStudent ? (
                 <div className="bg-white rounded-2xl shadow-md overflow-hidden" style={{ fontSize: "13px" }}>
+                  {/* Report Header with Logo */}
                   <div style={{ background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)` }}
                     className="text-white text-center px-4 py-4">
+                    {logoUrl && (
+                      <div className="flex justify-center mb-2">
+                        <img src={logoUrl} alt="School logo" style={{ width: 50, height: 50, objectFit: "contain", borderRadius: 8, background: "rgba(255,255,255,0.15)", padding: 4 }} />
+                      </div>
+                    )}
                     <div className="text-base font-extrabold">{school?.name}</div>
                     {school?.address && <div className="text-[9px] text-white/60 mt-0.5">{school.address}</div>}
                     {school?.motto && <div className="text-[9px] text-white/50 italic">{school.motto}</div>}
@@ -230,6 +239,7 @@ export default function ResultsPage() {
                     </div>
                   </div>
 
+                  {/* Student Info */}
                   <div className="px-4 py-3 border-b border-sand-200">
                     <div className="grid grid-cols-3 gap-x-4 gap-y-1.5">
                       <div>
@@ -277,6 +287,7 @@ export default function ResultsPage() {
                     </div>
                   </div>
 
+                  {/* Subjects */}
                   <div className="px-4">
                     <div className="grid grid-cols-[1.4fr_repeat(5,1fr)] py-2 text-[9px] font-bold text-gray-400 uppercase tracking-wide border-b-2 border-sand-200">
                       <div>Subject</div>
@@ -299,6 +310,7 @@ export default function ResultsPage() {
                     ))}
                   </div>
 
+                  {/* Summary */}
                   <div className="mx-4 mt-3 p-3 rounded-lg" style={{ background: theme.lightest }}>
                     <div className="grid grid-cols-3 text-center">
                       <div>
@@ -323,6 +335,7 @@ export default function ResultsPage() {
                     </div>
                   </div>
 
+                  {/* Teacher Remark */}
                   <div className="mx-4 mt-3 p-3 bg-sand-50 rounded-lg border border-sand-200">
                     <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Teacher&apos;s Remark</div>
                     <div className="text-[11px] font-medium text-gray-700 italic mt-1">&ldquo;{getTeacherRemark(selectedStudent.average)}&rdquo;</div>
@@ -332,6 +345,7 @@ export default function ResultsPage() {
                     </div>
                   </div>
 
+                  {/* Head Teacher Remark */}
                   <div className="mx-4 mt-2 p-3 bg-sand-50 rounded-lg border border-sand-200">
                     <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Head Teacher&apos;s Remark</div>
                     <div className="text-[11px] font-medium text-gray-700 italic mt-1">&ldquo;{getHeadTeacherRemark(selectedStudent.average)}&rdquo;</div>
@@ -341,12 +355,14 @@ export default function ResultsPage() {
                     </div>
                   </div>
 
+                  {/* Fees warning */}
                   {!selectedStudent.fees_paid && (
                     <div className="mx-4 mt-2 p-2 bg-amber-50 border border-amber-300 rounded-lg text-[10px] font-semibold text-amber-700 text-center">
                       ⚠️ RESULT WITHHELD — Outstanding fees must be cleared
                     </div>
                   )}
 
+                  {/* Grade key */}
                   <div className="px-4 py-3 border-t border-sand-200 mt-3">
                     <div className="flex gap-2 flex-wrap">
                       {[{ g: "A", r: "70-100" }, { g: "B", r: "60-69" }, { g: "C", r: "50-59" }, { g: "D", r: "40-49" }, { g: "F", r: "0-39" }].map((item) => (
@@ -358,6 +374,7 @@ export default function ResultsPage() {
                     </div>
                   </div>
 
+                  {/* Print */}
                   <div className="p-4 no-print">
                     <button onClick={() => window.print()}
                       className="w-full py-3 text-white rounded-xl font-bold text-sm hover:opacity-90"

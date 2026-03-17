@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/lib/ThemeContext";
@@ -13,6 +13,9 @@ export default function SchoolSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [logoUrl, setLogoUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (school) {
@@ -23,9 +26,67 @@ export default function SchoolSettingsPage() {
         show_position: school.show_position !== false,
       });
       setSelectedTheme(school.theme || "royal");
+      setLogoUrl(school.logo_url || null);
       setLoading(false);
     }
   }, [school]);
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file (PNG, JPG, etc.)");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Logo must be under 2MB");
+      return;
+    }
+
+    setUploading(true);
+
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${school.id}-logo.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("logos")
+      .upload(fileName, file, { upsert: true });
+
+    if (uploadError) {
+      alert("Error uploading logo. Please try again.");
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("logos")
+      .getPublicUrl(fileName);
+
+    const publicUrl = urlData.publicUrl + "?t=" + Date.now();
+
+    await supabase
+      .from("schools")
+      .update({ logo_url: publicUrl })
+      .eq("id", school.id);
+
+    setLogoUrl(publicUrl);
+    await refreshSchool();
+    setUploading(false);
+  };
+
+  const removeLogo = async () => {
+    if (!confirm("Remove school logo?")) return;
+
+    await supabase
+      .from("schools")
+      .update({ logo_url: null })
+      .eq("id", school.id);
+
+    setLogoUrl(null);
+    await refreshSchool();
+  };
 
   const handleSave = async () => {
     if (!school) return;
@@ -72,12 +133,53 @@ export default function SchoolSettingsPage() {
           <button onClick={() => router.push("/dashboard")} className="text-white/60 hover:text-white text-lg">←</button>
           <div>
             <h1 className="text-lg font-bold">School Info</h1>
-            <p className="text-xs text-white/60">Edit details, theme & settings</p>
+            <p className="text-xs text-white/60">Edit details, logo, theme & settings</p>
           </div>
         </div>
       </div>
 
       <div className="px-4 py-5 space-y-5">
+        {/* School Logo */}
+        <div className="bg-white rounded-2xl shadow-sm p-5">
+          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-3">School Logo</div>
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-xl border-2 border-dashed border-sand-300 flex items-center justify-center overflow-hidden"
+              style={{ background: logoUrl ? "white" : "#F7F5F0" }}>
+              {logoUrl ? (
+                <img src={logoUrl} alt="School logo" className="w-full h-full object-contain" />
+              ) : (
+                <span className="text-2xl">🏫</span>
+              )}
+            </div>
+            <div className="flex-1">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleLogoUpload}
+                accept="image/*"
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="px-4 py-2 text-sm font-bold rounded-xl transition-all text-white disabled:opacity-50"
+                style={{ background: previewTheme.primary }}
+              >
+                {uploading ? "Uploading..." : logoUrl ? "Change Logo" : "Upload Logo"}
+              </button>
+              {logoUrl && (
+                <button
+                  onClick={removeLogo}
+                  className="ml-2 px-4 py-2 text-sm font-bold rounded-xl bg-red-50 text-red-600 hover:bg-red-100"
+                >
+                  Remove
+                </button>
+              )}
+              <div className="text-[10px] text-gray-400 mt-2">PNG or JPG, max 2MB. Shows on report cards.</div>
+            </div>
+          </div>
+        </div>
+
         {/* School Details */}
         <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
           <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">School Details</div>
@@ -116,7 +218,7 @@ export default function SchoolSettingsPage() {
           <div className="flex items-center justify-between py-3 border-b border-sand-200">
             <div>
               <div className="text-sm font-semibold text-gray-800">Show Position on Report Card</div>
-              <div className="text-[10px] text-gray-400 mt-0.5">Display student's class ranking on their report card</div>
+              <div className="text-[10px] text-gray-400 mt-0.5">Display student's class ranking</div>
             </div>
             <button
               onClick={() => setForm({ ...form, show_position: !form.show_position })}
@@ -152,8 +254,13 @@ export default function SchoolSettingsPage() {
           <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Preview</div>
           <div className="rounded-xl overflow-hidden border border-sand-300">
             <div style={{ background: `linear-gradient(135deg, ${previewTheme.primary} 0%, ${previewTheme.secondary} 100%)`, padding: "12px 16px", color: "white" }}>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>{form.name || "School Name"}</div>
-              <div style={{ fontSize: 10, opacity: 0.7 }}>{form.address || "School Address"}</div>
+              <div className="flex items-center gap-2">
+                {logoUrl && <img src={logoUrl} alt="" style={{ width: 24, height: 24, objectFit: "contain", borderRadius: 4 }} />}
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>{form.name || "School Name"}</div>
+                  <div style={{ fontSize: 10, opacity: 0.7 }}>{form.address || "School Address"}</div>
+                </div>
+              </div>
             </div>
             <div style={{ padding: "10px 12px", background: "#F7F5F0" }}>
               <div className="flex gap-2">
