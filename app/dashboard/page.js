@@ -12,15 +12,30 @@ export default function DashboardPage() {
   const [activeSession, setActiveSession] = useState(null);
   const [studentCounts, setStudentCounts] = useState({});
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    if (!themeLoading) loadData();
-  }, [themeLoading]);
+    if (themeLoading) return;
+
+    // If ThemeContext finished but no user, check if we have a session
+    if (!user) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+          router.push("/login");
+        }
+        // If session exists but user not in ThemeContext, just show loading
+        // Don't redirect or reload — the data might still be loading
+        setAuthChecked(true);
+      });
+      return;
+    }
+
+    setAuthChecked(true);
+    loadData();
+  }, [themeLoading, user]);
 
   const loadData = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { router.push("/login"); return; }
-    if (!user) { router.push("/login"); return; }
+    if (!user) { setLoading(false); return; }
 
     const { data: sessions } = await supabase
       .from("sessions")
@@ -65,14 +80,30 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push("/login");
+    window.location.href = "/login";
   };
 
-  if (loading || themeLoading) {
+  // Show loading while checking auth or loading data
+  if (themeLoading || (!authChecked) || (user && loading)) {
     return (
       <div className="min-h-screen bg-sand-100 flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin"
           style={{ borderColor: `${theme.primary} transparent ${theme.primary} ${theme.primary}` }} />
+      </div>
+    );
+  }
+
+  // If auth checked and still no user, show message
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-sand-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-sm text-gray-500 mb-4">Unable to load your account. Please log in again.</div>
+          <button onClick={() => window.location.href = "/login"}
+            className="px-6 py-3 bg-blue-900 text-white rounded-xl font-bold text-sm">
+            Go to Login
+          </button>
+        </div>
       </div>
     );
   }
@@ -83,8 +114,14 @@ export default function DashboardPage() {
         className="text-white px-5 pt-5 pb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-              style={{ background: "rgba(255,255,255,0.15)" }}>📚</div>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg overflow-hidden"
+              style={{ background: "rgba(255,255,255,0.15)" }}>
+              {school?.logo_url ? (
+                <img src={school.logo_url} alt="" className="w-full h-full object-contain" />
+              ) : (
+                <span>📚</span>
+              )}
+            </div>
             <div>
               <h1 className="text-lg font-bold">{school?.name || "School"}</h1>
               <p className="text-xs text-white/70">{school?.address}</p>
