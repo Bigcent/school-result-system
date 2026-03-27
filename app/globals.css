@@ -2,30 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Base styles ─── */
+:root {
+  --background: #F7F5F0;
+  --foreground: #1a1a1a;
+}
+
 body {
+  color: var(--foreground);
+  background: var(--background);
   font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #F7F5F0;
-  color: #1a1a1a;
 }
 
-/* ─── Number input: hide arrows ─── */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type="number"] {
-  -moz-appearance: textfield;
-}
-
-/* ─── Print styles ─── */
 @media print {
   body {
-    background: white !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    color-adjust: exact !important;
   }
 
   * {
@@ -38,25 +29,85 @@ input[type="number"] {
     display: none !important;
   }
 
-  /* Remove shadows and rounded corners for cleaner print */
   .shadow-sm, .shadow-md {
     box-shadow: none !important;
   }
 
-  /* Ensure page fits */
   .min-h-screen {
     min-height: auto !important;
   }
 
-  /* Keep backgrounds visible in print */
-  div[style*="background"], 
+  div[style*="background"],
   div[style*="linear-gradient"] {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
   @page {
-    margin: 10mm;
+    margin: 6mm;
     size: A4;
+  }
+
+  /* Compact report card for single page */
+  .bg-white.rounded-2xl.shadow-md {
+    font-size: 11px !important;
+    border-radius: 0 !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .text-base {
+    font-size: 13px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .text-lg {
+    font-size: 15px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .px-4 {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .py-3 {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .py-4 {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .mt-3 {
+    margin-top: 4px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .mt-2 {
+    margin-top: 3px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .mb-2 {
+    margin-bottom: 3px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .p-3 {
+    padding: 4px 8px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .mx-4 {
+    margin-left: 8px !important;
+    margin-right: 8px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .gap-y-1\.5 {
+    gap: 2px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .py-1\.5 {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+  }
+
+  .bg-white.rounded-2xl.shadow-md .border-b {
+    border-bottom-width: 0.5px !important;
   }
 }
