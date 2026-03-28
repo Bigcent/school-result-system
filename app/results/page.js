@@ -109,12 +109,57 @@ export default function ResultsPage() {
 
   const className = classes.find(c => c.id === selectedClassId)?.name || "";
 
-  // Get subject total for a student
   const getSubjectTotal = (studentId, subjectId) => {
     const key = `${studentId}-${subjectId}`;
     const s = scores[key];
     if (!s) return null;
     return (s.test1 || 0) + (s.test2 || 0) + (s.exam || 0);
+  };
+
+  // Print broadsheet in landscape
+  const printBroadsheet = () => {
+    const style = document.createElement("style");
+    style.id = "print-orientation";
+    style.innerHTML = `
+      @page { size: A4 landscape; margin: 4mm; }
+      @media print {
+        body * { visibility: hidden; }
+        #broadsheet-container, #broadsheet-container * { visibility: visible; }
+        #broadsheet-container {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        .no-print { display: none !important; }
+      }
+    `;
+    document.head.appendChild(style);
+    window.print();
+    setTimeout(() => document.getElementById("print-orientation")?.remove(), 1000);
+  };
+
+  // Print report card in portrait
+  const printReportCard = () => {
+    const style = document.createElement("style");
+    style.id = "print-orientation";
+    style.innerHTML = `
+      @page { size: A4 portrait; margin: 6mm; }
+      @media print {
+        body * { visibility: hidden; }
+        #reportcard-container, #reportcard-container * { visibility: visible; }
+        #reportcard-container {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        .no-print { display: none !important; }
+      }
+    `;
+    document.head.appendChild(style);
+    window.print();
+    setTimeout(() => document.getElementById("print-orientation")?.remove(), 1000);
   };
 
   if (loading || themeLoading) {
@@ -166,21 +211,6 @@ export default function ResultsPage() {
           {/* ═══ BROADSHEET VIEW ═══ */}
           {view === "ranking" && (
             <>
-              {/* Print Header */}
-              <div className="hidden print:block text-center mb-3">
-                <div className="flex items-center justify-center gap-3 mb-1">
-                  {logoUrl && <img src={logoUrl} alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />}
-                  <div>
-                    <div className="text-lg font-extrabold" style={{ color: theme.primary }}>{school?.name}</div>
-                    {school?.address && <div className="text-xs text-gray-500">{school.address}</div>}
-                  </div>
-                </div>
-                <div className="text-sm font-bold mt-1" style={{ color: theme.secondary }}>
-                  BROADSHEET REPORT — {className} — {activeSession?.name} | {activeTerm?.name}
-                </div>
-                <div className="text-xs text-gray-400 mt-1">{students.length} students</div>
-              </div>
-
               {/* Stats Cards */}
               <div className="grid grid-cols-3 gap-3 mb-4 no-print">
                 {[
@@ -195,148 +225,173 @@ export default function ResultsPage() {
                 ))}
               </div>
 
-              {/* Broadsheet Table */}
-              <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
-                <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "10px" }}>
-                  <thead>
-                    <tr>
-                      <th style={{
-                        position: "sticky", left: 0, zIndex: 10,
-                        background: theme.primary, color: "white",
-                        padding: "8px 6px", fontWeight: 800, fontSize: "9px",
-                        textAlign: "center", minWidth: 30, borderRight: "2px solid rgba(255,255,255,0.2)",
-                      }}>
-                        S/N
-                      </th>
-                      <th style={{
-                        position: "sticky", left: 30, zIndex: 10,
-                        background: theme.primary, color: "white",
-                        padding: "8px 6px", fontWeight: 800, fontSize: "9px",
-                        textAlign: "left", minWidth: 120, borderRight: "2px solid rgba(255,255,255,0.2)",
-                      }}>
-                        NAME OF STUDENT
-                      </th>
-                      {subjects.map(sub => (
-                        <th key={sub.id} style={{
-                          background: theme.secondary, color: "white",
-                          padding: "6px 4px", fontWeight: 700, fontSize: "8px",
-                          textAlign: "center", minWidth: 45,
-                          borderRight: "1px solid rgba(255,255,255,0.15)",
-                          textTransform: "uppercase", lineHeight: 1.2,
-                          writingMode: subjects.length > 10 ? "vertical-rl" : "horizontal-tb",
-                          transform: subjects.length > 10 ? "rotate(180deg)" : "none",
-                          height: subjects.length > 10 ? 80 : "auto",
-                        }}>
-                          {sub.name}
-                        </th>
-                      ))}
-                      <th style={{
-                        background: theme.primary, color: "white",
-                        padding: "6px 4px", fontWeight: 800, fontSize: "9px",
-                        textAlign: "center", minWidth: 45, borderLeft: "2px solid rgba(255,255,255,0.3)",
-                      }}>
-                        TOTAL
-                      </th>
-                      <th style={{
-                        background: theme.primary, color: "white",
-                        padding: "6px 4px", fontWeight: 800, fontSize: "9px",
-                        textAlign: "center", minWidth: 40,
-                      }}>
-                        AVG
-                      </th>
-                      <th style={{
-                        background: theme.primary, color: "white",
-                        padding: "6px 4px", fontWeight: 800, fontSize: "9px",
-                        textAlign: "center", minWidth: 35,
-                      }}>
-                        POS
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {classResults.map((student, idx) => {
-                      const posColors = { 1: "#DAA520", 2: "#A8A8A8", 3: "#CD7F32" };
-                      return (
-                        <tr key={student.id}
-                          onClick={() => { setSelectedStudentId(student.id); setView("report"); }}
-                          style={{
-                            cursor: "pointer",
-                            background: idx % 2 === 0 ? "white" : "#FAFAF7",
-                            borderBottom: "1px solid #F0EDE8",
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = theme.lightest}
-                          onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? "white" : "#FAFAF7"}
-                        >
-                          <td style={{
-                            position: "sticky", left: 0, zIndex: 5,
-                            background: idx % 2 === 0 ? "white" : "#FAFAF7",
-                            padding: "6px", textAlign: "center", fontWeight: 700,
-                            fontSize: "9px", color: "#888",
-                            borderRight: "2px solid #F0EDE8",
+              {/* Broadsheet Printable Container */}
+              <div id="broadsheet-container">
+                {/* Print Header */}
+                <div style={{ textAlign: "center", marginBottom: 8, display: "none" }} className="print-show">
+                  <style>{`@media print { .print-show { display: block !important; } }`}</style>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 4 }}>
+                    {logoUrl && <img src={logoUrl} alt="" style={{ width: 35, height: 35, objectFit: "contain" }} />}
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: theme.primary }}>{school?.name}</div>
+                      {school?.address && <div style={{ fontSize: 8, color: "#666" }}>{school.address}</div>}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: theme.secondary }}>
+                    BROADSHEET REPORT — {className} — {activeSession?.name} | {activeTerm?.name}
+                  </div>
+                  <div style={{ fontSize: 8, color: "#999", marginTop: 2 }}>{students.length} students</div>
+                </div>
+
+                {/* Broadsheet Table */}
+                <div style={{ overflowX: "auto", borderRadius: 12 }} className="bg-white shadow-sm">
+                  <table style={{
+                    borderCollapse: "collapse",
+                    width: "100%",
+                    fontSize: 9,
+                    whiteSpace: "nowrap",
+                  }}>
+                    <thead>
+                      <tr>
+                        <th style={{
+                          position: "sticky", left: 0, zIndex: 10,
+                          background: theme.primary, color: "white",
+                          padding: "6px 4px", fontWeight: 800, fontSize: 8,
+                          textAlign: "center", width: 25,
+                          borderRight: "1px solid rgba(255,255,255,0.2)",
+                        }}>S/N</th>
+                        <th style={{
+                          position: "sticky", left: 25, zIndex: 10,
+                          background: theme.primary, color: "white",
+                          padding: "6px 4px", fontWeight: 800, fontSize: 8,
+                          textAlign: "left", minWidth: 100, maxWidth: 130,
+                          borderRight: "2px solid rgba(255,255,255,0.3)",
+                        }}>NAME OF STUDENT</th>
+                        {subjects.map(sub => (
+                          <th key={sub.id} style={{
+                            background: theme.secondary, color: "white",
+                            padding: "4px 2px", fontWeight: 700, fontSize: 7,
+                            textAlign: "center", minWidth: 32,
+                            borderRight: "1px solid rgba(255,255,255,0.1)",
+                            lineHeight: 1.1,
                           }}>
-                            {idx + 1}
-                          </td>
-                          <td style={{
-                            position: "sticky", left: 30, zIndex: 5,
-                            background: idx % 2 === 0 ? "white" : "#FAFAF7",
-                            padding: "6px", fontWeight: 700, fontSize: "10px",
-                            borderRight: "2px solid #F0EDE8",
-                            whiteSpace: "nowrap",
+                            {sub.name.length > 10
+                              ? sub.name.split(" ").map(w => w[0]).join("")
+                              : sub.name.substring(0, 6)}
+                          </th>
+                        ))}
+                        <th style={{
+                          background: "#1a1a2e", color: "#fbbf24",
+                          padding: "6px 4px", fontWeight: 900, fontSize: 8,
+                          textAlign: "center", minWidth: 38,
+                          borderLeft: "2px solid rgba(255,255,255,0.3)",
+                        }}>TOTAL</th>
+                        <th style={{
+                          background: "#1a1a2e", color: "#60a5fa",
+                          padding: "6px 4px", fontWeight: 900, fontSize: 8,
+                          textAlign: "center", minWidth: 35,
+                        }}>AVG</th>
+                        <th style={{
+                          background: "#1a1a2e", color: "#f472b6",
+                          padding: "6px 4px", fontWeight: 900, fontSize: 8,
+                          textAlign: "center", minWidth: 30,
+                        }}>POS</th>
+                      </tr>
+                      {/* Full subject names row for print */}
+                      <tr className="print-show" style={{ display: "none" }}>
+                        <th colSpan={2} style={{
+                          background: theme.lightest, padding: "3px 4px",
+                          fontSize: 6, color: theme.primary, fontWeight: 700, textAlign: "left",
+                          position: "sticky", left: 0, zIndex: 10,
+                        }}>Full names →</th>
+                        {subjects.map(sub => (
+                          <th key={sub.id} style={{
+                            background: theme.lightest, padding: "3px 2px",
+                            fontSize: 6, color: theme.primary, fontWeight: 600,
+                            textAlign: "center", lineHeight: 1.1,
+                            maxWidth: 32, overflow: "hidden",
                           }}>
-                            {student.last_name} {student.first_name}
-                          </td>
-                          {subjects.map(sub => {
-                            const total = getSubjectTotal(student.id, sub.id);
-                            const grade = total !== null ? getGrade(total) : null;
-                            return (
-                              <td key={sub.id} style={{
-                                padding: "6px 4px", textAlign: "center",
-                                fontWeight: 700, fontSize: "10px",
-                                borderRight: "1px solid #F0EDE8",
-                                color: total === null ? "#ccc"
-                                  : grade?.grade === "A" ? theme.primary
-                                  : grade?.grade === "F" ? "#DC2626"
-                                  : "#444",
-                              }}>
-                                {total ?? "—"}
-                              </td>
-                            );
-                          })}
-                          <td style={{
-                            padding: "6px 4px", textAlign: "center",
-                            fontWeight: 900, fontSize: "11px",
-                            color: theme.primary,
-                            borderLeft: "2px solid #F0EDE8",
-                          }}>
-                            {student.grandTotal || "—"}
-                          </td>
-                          <td style={{
-                            padding: "6px 4px", textAlign: "center",
-                            fontWeight: 700, fontSize: "10px",
-                            color: theme.secondary,
-                          }}>
-                            {student.average ?? "—"}%
-                          </td>
-                          <td style={{
-                            padding: "6px 4px", textAlign: "center",
-                            fontWeight: 900, fontSize: "11px",
-                            color: posColors[student.position] || "#888",
-                          }}>
-                            {getOrdinal(student.position)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            {sub.name}
+                          </th>
+                        ))}
+                        <th colSpan={3} style={{ background: theme.lightest }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {classResults.map((student, idx) => {
+                        const posColors = { 1: "#DAA520", 2: "#A8A8A8", 3: "#CD7F32" };
+                        return (
+                          <tr key={student.id}
+                            onClick={() => { setSelectedStudentId(student.id); setView("report"); }}
+                            style={{
+                              cursor: "pointer",
+                              background: idx % 2 === 0 ? "white" : "#FAFAF7",
+                              borderBottom: "1px solid #F0EDE8",
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = theme.lightest}
+                            onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? "white" : "#FAFAF7"}
+                          >
+                            <td style={{
+                              position: "sticky", left: 0, zIndex: 5,
+                              background: "inherit",
+                              padding: "5px 4px", textAlign: "center",
+                              fontWeight: 700, fontSize: 8, color: "#999",
+                              borderRight: "1px solid #F0EDE8",
+                            }}>{idx + 1}</td>
+                            <td style={{
+                              position: "sticky", left: 25, zIndex: 5,
+                              background: "inherit",
+                              padding: "5px 4px", fontWeight: 700, fontSize: 9,
+                              borderRight: "2px solid #F0EDE8",
+                              maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis",
+                            }}>{student.last_name} {student.first_name}</td>
+                            {subjects.map(sub => {
+                              const total = getSubjectTotal(student.id, sub.id);
+                              const grade = total !== null ? getGrade(total) : null;
+                              return (
+                                <td key={sub.id} style={{
+                                  padding: "5px 2px", textAlign: "center",
+                                  fontWeight: 700, fontSize: 9,
+                                  borderRight: "1px solid #F5F3EE",
+                                  color: total === null ? "#ddd"
+                                    : grade?.grade === "A" ? theme.primary
+                                    : grade?.grade === "F" ? "#DC2626"
+                                    : "#444",
+                                  background: grade?.grade === "F" ? "#FEF2F2" : "inherit",
+                                }}>{total ?? "—"}</td>
+                              );
+                            })}
+                            <td style={{
+                              padding: "5px 4px", textAlign: "center",
+                              fontWeight: 900, fontSize: 10,
+                              color: theme.primary,
+                              borderLeft: "2px solid #F0EDE8",
+                              background: idx < 3 ? "#FFFBEB" : "inherit",
+                            }}>{student.grandTotal || "—"}</td>
+                            <td style={{
+                              padding: "5px 4px", textAlign: "center",
+                              fontWeight: 700, fontSize: 9,
+                              color: theme.secondary,
+                            }}>{student.average ?? "—"}%</td>
+                            <td style={{
+                              padding: "5px 4px", textAlign: "center",
+                              fontWeight: 900, fontSize: 10,
+                              color: posColors[student.position] || "#888",
+                            }}>{getOrdinal(student.position)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               <p className="text-[10px] text-gray-400 text-center mt-2 no-print">Tap a student to view report card • Scroll right to see all subjects</p>
 
-              <button onClick={() => window.print()}
+              <button onClick={printBroadsheet}
                 className="w-full mt-4 py-3 text-white rounded-xl font-bold text-sm hover:opacity-90 no-print"
                 style={{ background: theme.primary }}>
-                🖨️ Print Broadsheet
+                🖨️ Print Broadsheet (Landscape)
               </button>
             </>
           )}
@@ -357,7 +412,7 @@ export default function ResultsPage() {
               </div>
 
               {selectedStudent ? (
-                <div className="bg-white rounded-2xl shadow-md overflow-hidden" style={{ fontSize: "13px" }}>
+                <div id="reportcard-container" className="bg-white rounded-2xl shadow-md overflow-hidden" style={{ fontSize: "13px" }}>
 
                   {/* Report Header */}
                   <div style={{ background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)` }}
@@ -537,7 +592,7 @@ export default function ResultsPage() {
 
                   {/* Print Button */}
                   <div className="p-4 no-print">
-                    <button onClick={() => window.print()}
+                    <button onClick={printReportCard}
                       className="w-full py-3 text-white rounded-xl font-bold text-sm hover:opacity-90"
                       style={{ background: theme.primary }}>
                       🖨️ Print Report Card
