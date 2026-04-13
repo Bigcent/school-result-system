@@ -9,39 +9,39 @@ const PARTICLES = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 const BOOKS = [
-  { emoji: "📕", x: 8, y: 15, delay: 0, scale: 1.2 },
-  { emoji: "📗", x: 85, y: 20, delay: 1.5, scale: 1 },
-  { emoji: "📘", x: 12, y: 70, delay: 0.8, scale: 1.4 },
-  { emoji: "📙", x: 88, y: 65, delay: 2, scale: 1.1 },
-  { emoji: "📓", x: 50, y: 8, delay: 0.5, scale: 0.9 },
-  { emoji: "📒", x: 75, y: 85, delay: 1.2, scale: 1.3 },
+  { emoji: "\ud83d\udcd5", x: 8, y: 15, delay: 0, scale: 1.2 },
+  { emoji: "\ud83d\udcd7", x: 85, y: 20, delay: 1.5, scale: 1 },
+  { emoji: "\ud83d\udcd8", x: 12, y: 70, delay: 0.8, scale: 1.4 },
+  { emoji: "\ud83d\udcd9", x: 88, y: 65, delay: 2, scale: 1.1 },
+  { emoji: "\ud83d\udcd3", x: 50, y: 8, delay: 0.5, scale: 0.9 },
+  { emoji: "\ud83d\udcd2", x: 75, y: 85, delay: 1.2, scale: 1.3 },
 ];
 
 const SCHOOL_ITEMS = [
-  { emoji: "✏️", x: 20, y: 35, delay: 0.3 },
-  { emoji: "🎓", x: 78, y: 40, delay: 1 },
-  { emoji: "📐", x: 30, y: 82, delay: 1.8 },
-  { emoji: "🏫", x: 65, y: 12, delay: 0.6 },
-  { emoji: "🔬", x: 15, y: 55, delay: 2.2 },
-  { emoji: "🎨", x: 82, y: 50, delay: 1.4 },
-  { emoji: "⚽", x: 45, y: 90, delay: 0.9 },
-  { emoji: "🌍", x: 92, y: 30, delay: 1.7 },
+  { emoji: "\u270f\ufe0f", x: 20, y: 35, delay: 0.3 },
+  { emoji: "\ud83c\udf93", x: 78, y: 40, delay: 1 },
+  { emoji: "\ud83d\udcd0", x: 30, y: 82, delay: 1.8 },
+  { emoji: "\ud83c\udfeb", x: 65, y: 12, delay: 0.6 },
+  { emoji: "\ud83d\udd2c", x: 15, y: 55, delay: 2.2 },
+  { emoji: "\ud83c\udfa8", x: 82, y: 50, delay: 1.4 },
+  { emoji: "\u26bd", x: 45, y: 90, delay: 0.9 },
+  { emoji: "\ud83c\udf0d", x: 92, y: 30, delay: 1.7 },
 ];
 
 const FEATURES = [
-  { icon: "⚡", title: "Instant Results", desc: "Enter scores once — totals, rankings, and grades calculate automatically in real time." },
-  { icon: "📊", title: "Smart Report Cards", desc: "Professional report cards with auto-generated remarks, attendance, and school branding." },
-  { icon: "🎨", title: "Your School, Your Brand", desc: "Custom colors, logo upload, and personalized interface for every school." },
-  { icon: "🖨️", title: "Print-Ready", desc: "Report cards and class rankings print beautifully with full color on A4 paper." },
-  { icon: "🔒", title: "Secure & Private", desc: "Each school's data is completely isolated. Only your staff can access results." },
-  { icon: "📱", title: "Works Everywhere", desc: "Use on phone, tablet, or laptop. No app download needed — just open your browser." },
+  { icon: "\u26a1", title: "Instant Results", desc: "Enter scores once \u2014 totals, rankings, and grades calculate automatically in real time." },
+  { icon: "\ud83d\udcca", title: "Smart Report Cards", desc: "Professional report cards with auto-generated remarks, attendance, and school branding." },
+  { icon: "\ud83c\udfa8", title: "Your School, Your Brand", desc: "Custom colors, logo upload, and personalized interface for every school." },
+  { icon: "\ud83d\udda8\ufe0f", title: "Print-Ready", desc: "Report cards and class rankings print beautifully with full color on A4 paper." },
+  { icon: "\ud83d\udd12", title: "Secure & Private", desc: "Each school's data is completely isolated. Only your staff can access results." },
+  { icon: "\ud83d\udcf1", title: "Works Everywhere", desc: "Use on phone, tablet, or laptop. No app download needed \u2014 just open your browser." },
 ];
 
 const STEPS = [
-  { num: "01", icon: "🏫", title: "Register Your School", desc: "Enter school name, address, motto, and upload your logo. Takes 2 minutes." },
-  { num: "02", icon: "📋", title: "Set Up Classes & Subjects", desc: "Add classes and pick subjects from our library of 30+ Nigerian curriculum subjects." },
-  { num: "03", icon: "✏️", title: "Enter Scores", desc: "Simple spreadsheet-style grid. Just type CA1, CA2, and Exam scores." },
-  { num: "04", icon: "📄", title: "Print Report Cards", desc: "Rankings, remarks, attendance — ready to distribute to parents." },
+  { num: "01", icon: "\ud83c\udfeb", title: "Register Your School", desc: "Enter school name, address, motto, and upload your logo. Takes 2 minutes." },
+  { num: "02", icon: "\ud83d\udccb", title: "Set Up Classes & Subjects", desc: "Add classes and pick subjects from our library of 30+ Nigerian curriculum subjects." },
+  { num: "03", icon: "\u270f\ufe0f", title: "Enter Scores", desc: "Simple spreadsheet-style grid. Just type CA1, CA2, and Exam scores." },
+  { num: "04", icon: "\ud83d\udcc4", title: "Print Report Cards", desc: "Rankings, remarks, attendance \u2014 ready to distribute to parents." },
 ];
 
 function ScrollReveal({ children, delay = 0, direction = "up" }) {
@@ -55,12 +55,7 @@ function ScrollReveal({ children, delay = 0, direction = "up" }) {
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, []);
-  const transforms = {
-    up: "translateY(50px)",
-    left: "translateX(-50px)",
-    right: "translateX(50px)",
-    scale: "scale(0.85)",
-  };
+  const transforms = { up: "translateY(50px)", left: "translateX(-50px)", right: "translateX(50px)", scale: "scale(0.85)" };
   return (
     <div ref={ref} style={{
       transition: `all 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s`,
@@ -100,7 +95,7 @@ export default function LoginPage() {
     const rect = heroRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const emojis = ["⭐", "✨", "💫", "🌟", "📚", "✏️", "🎓", "💡"];
+    const emojis = ["\u2b50", "\u2728", "\ud83d\udcab", "\ud83c\udf1f", "\ud83d\udcda", "\u270f\ufe0f", "\ud83c\udf93", "\ud83d\udca1"];
     const newPops = Array.from({ length: 6 }, (_, i) => ({
       id: popId.current++, x, y,
       emoji: emojis[Math.floor(Math.random() * emojis.length)],
@@ -205,7 +200,6 @@ export default function LoginPage() {
         html { scroll-behavior: smooth; }
       `}</style>
 
-      {/* ═══════ HERO ═══════ */}
       <div ref={heroRef} onMouseMove={handleMouseMove} style={{ minHeight: "100vh", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px", cursor: "crosshair" }}>
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(270deg, #0a0e27, #0f1b3d, #0c1445, #131852, #0a1a3f, #0d1233)", backgroundSize: "600% 600%", animation: "bgShift 15s ease infinite" }} />
         <div style={{ position: "absolute", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(37,99,235,0.2), transparent 70%)", top: "10%", left: "10%", animation: "gradientOrb 8s ease-in-out infinite", filter: "blur(40px)" }} />
@@ -223,14 +217,14 @@ export default function LoginPage() {
 
         <div style={{ width: "100%", maxWidth: 440, position: "relative", zIndex: 10, opacity: loaded ? 1 : 0, animation: loaded ? "slideUp 0.8s ease-out" : "none" }}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <div style={{ width: 80, height: 80, borderRadius: 24, background: "linear-gradient(135deg, #2563eb, #7c3aed, #2563eb)", backgroundSize: "200% 200%", animation: "bgShift 4s ease infinite", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 36, boxShadow: "0 8px 40px rgba(99,102,241,0.4), 0 0 80px rgba(37,99,235,0.15)", transform: loaded ? "scale(1)" : "scale(0)", transition: "all 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.2s" }}><span style={{ animation: "wave 2s ease-in-out infinite" }}>📊</span></div>
-            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 38, fontWeight: 900, color: "white", letterSpacing: -1, lineHeight: 1 }}>School Results</h1>
-            <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: 4, textTransform: "uppercase", marginTop: 10, background: "linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.8), rgba(255,255,255,0.3))", backgroundSize: "200% auto", animation: "shimmer 3s linear infinite", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Report Cards Made Effortless</p>
+            <div style={{ width: 80, height: 80, borderRadius: 24, background: "linear-gradient(135deg, #2563eb, #7c3aed, #2563eb)", backgroundSize: "200% 200%", animation: "bgShift 4s ease infinite", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 36, boxShadow: "0 8px 40px rgba(99,102,241,0.4), 0 0 80px rgba(37,99,235,0.15)", transform: loaded ? "scale(1)" : "scale(0)", transition: "all 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.2s" }}><span style={{ animation: "wave 2s ease-in-out infinite" }}>\ud83d\udcca</span></div>
+            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 38, fontWeight: 900, color: "white", letterSpacing: -1, lineHeight: 1 }}>EasyAcad</h1>
+            <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: 4, textTransform: "uppercase", marginTop: 10, background: "linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.8), rgba(255,255,255,0.3))", backgroundSize: "200% auto", animation: "shimmer 3s linear infinite", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Result Processing Made Effortless</p>
           </div>
 
           <div style={{ display: "flex", borderRadius: 20, padding: 4, background: "rgba(255,255,255,0.06)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 20 }}>
             {["login", "register"].map(m => (
-              <button key={m} onClick={() => { setMode(m); setStep(1); setError(""); setSuccess(""); }} style={{ flex: 1, padding: "14px 0", borderRadius: 16, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 800, fontFamily: "'DM Sans', sans-serif", letterSpacing: 0.5, transition: "all 0.4s cubic-bezier(0.34,1.56,0.64,1)", background: mode === m ? "white" : "transparent", color: mode === m ? "#1e293b" : "rgba(255,255,255,0.4)", boxShadow: mode === m ? "0 4px 20px rgba(0,0,0,0.15)" : "none", transform: mode === m ? "scale(1.02)" : "scale(1)" }}>{m === "login" ? "✨ Sign In" : "🚀 Register School"}</button>
+              <button key={m} onClick={() => { setMode(m); setStep(1); setError(""); setSuccess(""); }} style={{ flex: 1, padding: "14px 0", borderRadius: 16, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 800, fontFamily: "'DM Sans', sans-serif", letterSpacing: 0.5, transition: "all 0.4s cubic-bezier(0.34,1.56,0.64,1)", background: mode === m ? "white" : "transparent", color: mode === m ? "#1e293b" : "rgba(255,255,255,0.4)", boxShadow: mode === m ? "0 4px 20px rgba(0,0,0,0.15)" : "none", transform: mode === m ? "scale(1.02)" : "scale(1)" }}>{m === "login" ? "\u2728 Sign In" : "\ud83d\ude80 Register School"}</button>
             ))}
           </div>
 
@@ -241,8 +235,8 @@ export default function LoginPage() {
             {mode === "login" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div><label style={labelStyle}>Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="admin@yourschool.com" /></div>
-                <div><label style={labelStyle}>Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="••••••••" /></div>
-                <button onClick={handleLogin} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.6 : 1 }} onMouseEnter={e => { e.target.style.transform = "translateY(-2px)"; e.target.style.boxShadow = "0 10px 32px rgba(37,99,235,0.5)"; }} onMouseLeave={e => { e.target.style.transform = "translateY(0)"; e.target.style.boxShadow = "0 6px 24px rgba(37,99,235,0.35)"; }}>{loading ? "Signing in..." : "Sign In →"}</button>
+                <div><label style={labelStyle}>Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" /></div>
+                <button onClick={handleLogin} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.6 : 1 }}>{loading ? "Signing in..." : "Sign In \u2192"}</button>
                 <button onClick={handleForgotPassword} style={{ width: "100%", padding: 8, border: "none", background: "none", color: "#6366f1", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Forgot password?</button>
               </div>
             )}
@@ -250,7 +244,7 @@ export default function LoginPage() {
             {mode === "register" && (
               <>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 24 }}>
-                  {[{ n: 1, i: "🏫" }, { n: 2, i: "🎨" }, { n: 3, i: "👤" }].map((s, idx) => (
+                  {[{ n: 1, i: "\ud83c\udfeb" }, { n: 2, i: "\ud83c\udfa8" }, { n: 3, i: "\ud83d\udc64" }].map((s, idx) => (
                     <div key={s.n} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <div style={{ width: 44, height: 44, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, transition: "all 0.5s cubic-bezier(0.34,1.56,0.64,1)", background: step >= s.n ? "linear-gradient(135deg, #2563eb, #7c3aed)" : "#f1f5f9", color: step >= s.n ? "white" : "#94a3b8", boxShadow: step >= s.n ? "0 4px 16px rgba(99,102,241,0.3)" : "none", transform: step === s.n ? "scale(1.15)" : "scale(1)" }}>{s.i}</div>
                       {idx < 2 && <div style={{ width: 24, height: 3, borderRadius: 2, background: step > s.n ? "linear-gradient(90deg, #2563eb, #7c3aed)" : "#e2e8f0", transition: "all 0.5s" }} />}
@@ -260,23 +254,23 @@ export default function LoginPage() {
 
                 {step === 1 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 14, animation: "slideUp 0.4s ease-out" }}>
-                    <div><label style={labelStyle}>School Name *</label><input type="text" value={schoolName} onChange={e => setSchoolName(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Evelyn Primary School" /></div>
+                    <div><label style={labelStyle}>School Name *</label><input type="text" value={schoolName} onChange={e => setSchoolName(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Ifelyn Smart Kids Academy" /></div>
                     <div><label style={labelStyle}>Address</label><input type="text" value={schoolAddress} onChange={e => setSchoolAddress(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Asaba, Delta State" /></div>
                     <div><label style={labelStyle}>Motto</label><input type="text" value={schoolMotto} onChange={e => setSchoolMotto(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Knowledge is Power" /></div>
-                    <button onClick={nextStep} style={btnPrimary}>Continue →</button>
+                    <button onClick={nextStep} style={btnPrimary}>Continue \u2192</button>
                   </div>
                 )}
                 {step === 2 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "center", animation: "slideUp 0.4s ease-out" }}>
                     <div onClick={() => fileInputRef.current?.click()} style={{ width: 130, height: 130, borderRadius: 28, border: "3px dashed #cbd5e1", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", background: logoPreview ? "white" : "linear-gradient(135deg, #f8fafc, #eef2ff)", transition: "all 0.3s", overflow: "hidden" }}>
-                      {logoPreview ? <img src={logoPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <div style={{ textAlign: "center", animation: "wave 2s ease-in-out infinite" }}><div style={{ fontSize: 40 }}>📷</div><div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800, marginTop: 4 }}>Upload Logo</div></div>}
+                      {logoPreview ? <img src={logoPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <div style={{ textAlign: "center", animation: "wave 2s ease-in-out infinite" }}><div style={{ fontSize: 40 }}>\ud83d\udcf7</div><div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800, marginTop: 4 }}>Upload Logo</div></div>}
                     </div>
                     <input type="file" ref={fileInputRef} onChange={handleLogoSelect} accept="image/*" style={{ display: "none" }} />
-                    <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>PNG or JPG • Max 2MB • Shows on report cards</div>
+                    <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>PNG or JPG \u2022 Max 2MB \u2022 Shows on report cards</div>
                     {logoPreview && <button onClick={() => { setLogoFile(null); setLogoPreview(null); }} style={{ fontSize: 12, color: "#ef4444", fontWeight: 700, background: "none", border: "none", cursor: "pointer" }}>Remove logo</button>}
                     <div style={{ display: "flex", gap: 12, width: "100%" }}>
-                      <button onClick={() => { setError(""); setStep(1); }} style={{ flex: 1, padding: 16, borderRadius: 16, border: "2px solid #e2e8f0", background: "white", color: "#64748b", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>← Back</button>
-                      <button onClick={nextStep} style={{ flex: 1, padding: 16, borderRadius: 16, border: "none", background: "linear-gradient(135deg, #2563eb, #7c3aed)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 16px rgba(99,102,241,0.3)" }}>{logoFile ? "Continue →" : "Skip →"}</button>
+                      <button onClick={() => { setError(""); setStep(1); }} style={{ flex: 1, padding: 16, borderRadius: 16, border: "2px solid #e2e8f0", background: "white", color: "#64748b", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>\u2190 Back</button>
+                      <button onClick={nextStep} style={{ flex: 1, padding: 16, borderRadius: 16, border: "none", background: "linear-gradient(135deg, #2563eb, #7c3aed)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 16px rgba(99,102,241,0.3)" }}>{logoFile ? "Continue \u2192" : "Skip \u2192"}</button>
                     </div>
                   </div>
                 )}
@@ -285,7 +279,7 @@ export default function LoginPage() {
                     <div><label style={labelStyle}>Full Name *</label><input type="text" value={fullName} onChange={e => setFullName(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Mrs. Okonkwo" /></div>
                     <div><label style={labelStyle}>Email *</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="admin@school.com" /></div>
                     <div><label style={labelStyle}>Password *</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="At least 6 characters" /></div>
-                    <div><label style={labelStyle}>Confirm Password *</label><input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleRegister()} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="••••••••" /></div>
+                    <div><label style={labelStyle}>Confirm Password *</label><input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleRegister()} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" /></div>
                     <div style={{ borderRadius: 18, overflow: "hidden", border: "1px solid #e2e8f0" }}>
                       <div style={{ background: "linear-gradient(135deg, #1e3a5f, #2563eb)", padding: "14px 18px", color: "white", display: "flex", alignItems: "center", gap: 10 }}>
                         {logoPreview && <img src={logoPreview} alt="" style={{ width: 24, height: 24, objectFit: "contain", borderRadius: 6 }} />}
@@ -293,8 +287,8 @@ export default function LoginPage() {
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 12 }}>
-                      <button onClick={() => { setError(""); setStep(2); }} style={{ padding: "16px 22px", borderRadius: 16, border: "2px solid #e2e8f0", background: "white", color: "#64748b", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>←</button>
-                      <button onClick={handleRegister} disabled={loading} style={{ ...btnPrimary, flex: 1, opacity: loading ? 0.6 : 1 }}>{loading ? "Creating school..." : "Create School 🚀"}</button>
+                      <button onClick={() => { setError(""); setStep(2); }} style={{ padding: "16px 22px", borderRadius: 16, border: "2px solid #e2e8f0", background: "white", color: "#64748b", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>\u2190</button>
+                      <button onClick={handleRegister} disabled={loading} style={{ ...btnPrimary, flex: 1, opacity: loading ? 0.6 : 1 }}>{loading ? "Creating school..." : "Create School \ud83d\ude80"}</button>
                     </div>
                   </div>
                 )}
@@ -304,21 +298,19 @@ export default function LoginPage() {
 
           <div style={{ textAlign: "center", marginTop: 30, animation: "float 2s ease-in-out infinite" }}>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scroll to explore</div>
-            <div style={{ fontSize: 24, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>↓</div>
+            <div style={{ fontSize: 24, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>\u2193</div>
           </div>
         </div>
       </div>
 
-      {/* ═══════ WELCOME ═══════ */}
       <div style={{ background: "white", padding: "90px 20px", textAlign: "center" }}>
         <ScrollReveal><div style={{ maxWidth: 700, margin: "0 auto" }}>
-          <div style={{ fontSize: 13, fontWeight: 900, color: "#6366f1", letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Welcome</div>
+          <div style={{ fontSize: 13, fontWeight: 900, color: "#6366f1", letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Welcome to EasyAcad</div>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 40, fontWeight: 900, color: "#0f172a", lineHeight: 1.2, marginBottom: 20 }}>The simplest way to generate school report cards</h2>
-          <p style={{ fontSize: 17, color: "#64748b", lineHeight: 1.8, fontWeight: 500 }}>We understand the stress of result week. Teachers spend days calculating totals, ranking students, and filling report cards manually. We built this platform to eliminate that stress completely. Enter scores once — everything else is automatic.</p>
+          <p style={{ fontSize: 17, color: "#64748b", lineHeight: 1.8, fontWeight: 500 }}>We understand the stress of result week. Teachers spend days calculating totals, ranking students, and filling report cards manually. EasyAcad eliminates that stress completely. Enter scores once \u2014 everything else is automatic.</p>
         </div></ScrollReveal>
       </div>
 
-      {/* ═══════ FEATURES ═══════ */}
       <div style={{ background: "#f8fafc", padding: "90px 20px" }}>
         <div style={{ maxWidth: 920, margin: "0 auto" }}>
           <ScrollReveal>
@@ -341,7 +333,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* ═══════ HOW IT WORKS ═══════ */}
       <div style={{ background: "white", padding: "90px 20px" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <ScrollReveal>
@@ -367,27 +358,25 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* ═══════ MISSION & VISION ═══════ */}
       <div style={{ background: "linear-gradient(135deg, #0f172a, #1e3a5f)", padding: "90px 20px", color: "white" }}>
         <div style={{ maxWidth: 800, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 40 }}>
           <ScrollReveal direction="left">
             <div>
               <div style={{ fontSize: 13, fontWeight: 900, color: "#60a5fa", letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Our Mission</div>
               <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 900, marginBottom: 16 }}>Simplify school administration across Africa</h3>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, fontWeight: 500 }}>We believe teachers should spend their time teaching, not calculating results. Our mission is to digitize the most stressful administrative task in schools — result compilation — starting with Nigerian primary schools.</p>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, fontWeight: 500 }}>Teachers should spend their time teaching, not calculating results. EasyAcad\u2019s mission is to digitize result compilation \u2014 the most stressful administrative task in schools \u2014 starting with Nigerian primary schools.</p>
             </div>
           </ScrollReveal>
           <ScrollReveal direction="right" delay={0.2}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 900, color: "#a78bfa", letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Our Vision</div>
               <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 900, marginBottom: 16 }}>Every school, digitally empowered</h3>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, fontWeight: 500 }}>We envision a future where every school — no matter how small — has access to professional, accurate, and beautifully designed report cards. Where result week takes 30 minutes, not 7 days.</p>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, fontWeight: 500 }}>We envision a future where every school \u2014 no matter how small \u2014 has access to professional, accurate, beautifully designed report cards. Where result week takes 30 minutes, not 7 days.</p>
             </div>
           </ScrollReveal>
         </div>
       </div>
 
-      {/* ═══════ CONTACT ═══════ */}
       <div style={{ background: "#f8fafc", padding: "90px 20px" }}>
         <div style={{ maxWidth: 700, margin: "0 auto" }}>
           <ScrollReveal>
@@ -398,9 +387,9 @@ export default function LoginPage() {
           </ScrollReveal>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20 }}>
             {[
-              { icon: "📧", label: "Email", value: "your-email@gmail.com", sub: "We reply within 24 hours" },
-              { icon: "📞", label: "Phone", value: "+234 XXX XXX XXXX", sub: "Mon-Fri, 8am - 5pm" },
-              { icon: "💬", label: "WhatsApp", value: "+234 XXX XXX XXXX", sub: "Quick support" },
+              { icon: "\ud83d\udce7", label: "Email", value: "hello@geteasyacad.com", sub: "We reply within 24 hours" },
+              { icon: "\ud83d\udcde", label: "Phone", value: "+234 907 909 8659", sub: "Mon-Fri, 8am - 5pm" },
+              { icon: "\ud83d\udcac", label: "WhatsApp", value: "+234 907 909 8659", sub: "Quick support" },
             ].map((c, i) => (
               <ScrollReveal key={i} delay={i * 0.15} direction="scale">
                 <div style={{ background: "white", borderRadius: 22, padding: 28, textAlign: "center", border: "1px solid #f1f5f9", boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}>
@@ -415,14 +404,13 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* ═══════ FOOTER ═══════ */}
       <div style={{ background: "#0f172a", padding: "40px 20px", textAlign: "center" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 12, background: "linear-gradient(135deg, #2563eb, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>📊</div>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 900, color: "white" }}>School Results</span>
+          <div style={{ width: 36, height: 36, borderRadius: 12, background: "linear-gradient(135deg, #2563eb, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>\ud83d\udcca</div>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 900, color: "white" }}>EasyAcad</span>
         </div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontWeight: 500 }}>Automated report card generation for Nigerian schools</div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.15)", marginTop: 8 }}>© 2026 School Result System. All rights reserved.</div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.15)", marginTop: 8 }}>\u00a9 2026 EasyAcad. All rights reserved.</div>
       </div>
     </div>
   );

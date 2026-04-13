@@ -1,29 +1,14 @@
-"use client";
-import { useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+import "./globals.css";
 
-export default function Home() {
-  const router = useRouter();
+export const metadata = {
+  title: "EasyAcad \u2014 Result Processing Made Effortless",
+  description: "Automated report card and broadsheet generation for Nigerian primary and secondary schools. Enter scores once, get finished results in minutes.",
+};
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push("/dashboard");
-      } else {
-        router.push("/login");
-      }
-    };
-    checkAuth();
-  }, [router]);
-
+export default function RootLayout({ children }) {
   return (
-    <div className="min-h-screen bg-sand-100 flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-12 h-12 border-4 border-forest-800 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-sm text-gray-500 mt-4">Loading...</p>
-      </div>
-    </div>
+    <html lang="en">
+      <body>{children}</body>
+    </html>
   );
 }
