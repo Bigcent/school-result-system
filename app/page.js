@@ -1,14 +1,31 @@
-import "./globals.css";
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export const metadata = {
-  title: "EasyAcad \u2014 Result Processing Made Effortless",
-  description: "Automated report card and broadsheet generation for Nigerian primary and secondary schools. Enter scores once, get finished results in minutes.",
-};
+export default function Home() {
+  const router = useRouter();
 
-export default function RootLayout({ children }) {
+  useEffect(() => {
+    router.push("/login");
+  }, [router]);
+
   return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "#f7f5f0",
+    }}>
+      <div style={{
+        width: 48,
+        height: 48,
+        border: "4px solid #1B3A6B",
+        borderTopColor: "transparent",
+        borderRadius: "50%",
+        animation: "spin 1s linear infinite",
+      }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
   );
 }
