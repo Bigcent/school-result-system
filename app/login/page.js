@@ -1,7 +1,6 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 
 const PARTICLES = Array.from({ length: 30 }, (_, i) => ({
   id: i, x: Math.random() * 100, size: Math.random() * 4 + 2,
@@ -66,7 +65,7 @@ function ScrollReveal({ children, delay = 0, direction = "up" }) {
   );
 }
 
-export default function LoginPage() {
+function LoginPageContent() {
   const searchParams = useSearchParams();
   const [mode, setMode] = useState("login");
   const [step, setStep] = useState(0); // 0 = access code gate, 1-3 = registration steps
@@ -594,5 +593,12 @@ export default function LoginPage() {
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.15)", marginTop: 8 }}>© 2026 EasyAcad. All rights reserved.</div>
       </div>
     </div>
+  );
+}
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0d1233" }}><div style={{ color: "white", fontSize: 16 }}>Loading...</div></div>}>
+      <LoginPageContent />
+    </Suspense>
   );
 }
