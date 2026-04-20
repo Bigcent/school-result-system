@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 const PARTICLES = Array.from({ length: 30 }, (_, i) => ({
@@ -66,8 +67,12 @@ function ScrollReveal({ children, delay = 0, direction = "up" }) {
 }
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState("login");
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // 0 = access code gate, 1-3 = registration steps
+  const [accessCode, setAccessCode] = useState("");
+  const [validatedCode, setValidatedCode] = useState(null); // stores validated code data
+  const [registrationType, setRegistrationType] = useState(null); // "code" or "trial"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -75,6 +80,7 @@ export default function LoginPage() {
   const [schoolAddress, setSchoolAddress] = useState("");
   const [schoolMotto, setSchoolMotto] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -87,7 +93,16 @@ export default function LoginPage() {
   const heroRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  useEffect(() => { setTimeout(() => setLoaded(true), 100); }, []);
+  useEffect(() => {
+    setTimeout(() => setLoaded(true), 100);
+    // Check for invite link code in URL
+    const urlCode = searchParams.get("code");
+    if (urlCode) {
+      setAccessCode(urlCode.toUpperCase());
+      setMode("register");
+      setStep(0);
+    }
+  }, [searchParams]);
 
   const handleHeroClick = (e) => {
     if (!heroRef.current?.contains(e.target)) return;
@@ -128,12 +143,63 @@ export default function LoginPage() {
     setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); setError("");
   };
 
+  // Validate access code against database
+  const validateAccessCode = async () => {
+    if (!accessCode.trim()) { setError("Please enter your access code."); return; }
+    setLoading(true); setError("");
+    try {
+      const { data, error: fetchError } = await supabase
+        .from("access_codes")
+        .select("*")
+        .eq("code", accessCode.trim().toUpperCase())
+        .single();
+
+      if (fetchError || !data) {
+        setError("Invalid access code. Please check and try again.");
+        setLoading(false);
+        return;
+      }
+      if (data.used) {
+        setError("This access code has already been used.");
+        setLoading(false);
+        return;
+      }
+      if (new Date(data.expires_at) < new Date()) {
+        setError("This access code has expired. Contact us for a new one.");
+        setLoading(false);
+        return;
+      }
+      // Code is valid
+      setValidatedCode(data);
+      setRegistrationType("code");
+      setStep(1);
+      setError("");
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    }
+    setLoading(false);
+  };
+
+  // Start free trial
+  const startFreeTrial = () => {
+    setRegistrationType("trial");
+    setValidatedCode({
+      plan: "trial",
+      max_classes: 1,
+      max_students_per_class: 15,
+      can_print: false,
+    });
+    setStep(1);
+    setError("");
+  };
+
   const handleRegister = async () => {
     if (!email || !password) { setError("Please enter email and password."); return; }
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
     if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
     if (!schoolName.trim()) { setError("Please enter your school name."); return; }
     if (!fullName.trim()) { setError("Please enter your full name."); return; }
+    if (registrationType === "trial" && !phone.trim()) { setError("Phone number is required for free trial."); return; }
     setLoading(true); setError("");
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
@@ -142,8 +208,37 @@ export default function LoginPage() {
       if (!userId) { setError("Registration failed."); setLoading(false); return; }
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) { setError("Account created but sign in failed: " + signInError.message); setMode("login"); setLoading(false); return; }
-      const { data: schoolData, error: schoolError } = await supabase.from("schools").insert({ name: schoolName.trim(), address: schoolAddress.trim() || null, motto: schoolMotto.trim() || null, theme: "royal" }).select().single();
+
+      // Determine plan settings from validated code
+      const plan = validatedCode?.plan || "trial";
+      const maxClasses = validatedCode?.max_classes ?? 1;
+      const maxStudents = validatedCode?.max_students_per_class ?? 15;
+      const canPrint = validatedCode?.can_print ?? false;
+
+      const { data: schoolData, error: schoolError } = await supabase.from("schools").insert({
+        name: schoolName.trim(),
+        address: schoolAddress.trim() || null,
+        motto: schoolMotto.trim() || null,
+        theme: "royal",
+        plan: plan,
+        max_classes: maxClasses,
+        max_students_per_class: maxStudents,
+        can_print: canPrint,
+        access_code_used: registrationType === "code" ? accessCode.trim().toUpperCase() : null,
+        trial_expires_at: plan === "trial" ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null,
+      }).select().single();
+
       if (schoolError || !schoolData) { setError("School creation failed: " + (schoolError?.message || "Unknown")); setLoading(false); return; }
+
+      // Mark access code as used (if using a code)
+      if (registrationType === "code" && validatedCode?.id) {
+        await supabase.from("access_codes").update({
+          used: true,
+          used_by: schoolData.id,
+          used_at: new Date().toISOString(),
+        }).eq("id", validatedCode.id);
+      }
+
       if (logoFile) {
         const ext = logoFile.name.split(".").pop();
         const fname = `${schoolData.id}-logo.${ext}`;
@@ -153,7 +248,16 @@ export default function LoginPage() {
           await supabase.from("schools").update({ logo_url: urlData.publicUrl + "?t=" + Date.now() }).eq("id", schoolData.id);
         }
       }
-      const { error: userError } = await supabase.from("users").insert({ id: userId, school_id: schoolData.id, full_name: fullName.trim(), role: "admin" });
+
+      // Determine user role
+      const userRole = plan === "super_admin" ? "super_admin" : "admin";
+
+      const { error: userError } = await supabase.from("users").insert({
+        id: userId,
+        school_id: schoolData.id,
+        full_name: fullName.trim(),
+        role: userRole,
+      });
       if (userError) { setError("Profile creation failed: " + userError.message); setLoading(false); return; }
       window.location.href = "/dashboard";
     } catch (err) { setError("Something went wrong: " + (err.message || "Unknown")); setLoading(false); }
@@ -178,6 +282,24 @@ export default function LoginPage() {
   const iBlur = (e) => { e.target.style.borderColor = "#e2e8f0"; e.target.style.boxShadow = "none"; };
   const labelStyle = { display: "block", fontSize: 11, fontWeight: 900, color: "#64748b", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 };
   const btnPrimary = { width: "100%", padding: 18, borderRadius: 18, border: "none", background: "linear-gradient(135deg, #1e3a5f, #2563eb, #7c3aed)", backgroundSize: "200% 200%", color: "white", fontSize: 16, fontWeight: 900, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 6px 24px rgba(37,99,235,0.35)", transition: "all 0.3s ease", letterSpacing: 0.5 };
+
+  // Plan badge for registration
+  const planBadge = validatedCode ? (
+    <div style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      padding: "6px 14px", borderRadius: 999, marginBottom: 16,
+      background: validatedCode.plan === "trial" ? "#fef3c7" : validatedCode.plan === "super_admin" ? "#dbeafe" : "#dcfce7",
+      border: `1px solid ${validatedCode.plan === "trial" ? "#fbbf24" : validatedCode.plan === "super_admin" ? "#3b82f6" : "#16a34a"}`,
+      fontSize: 11, fontWeight: 800, letterSpacing: 1,
+      color: validatedCode.plan === "trial" ? "#92400e" : validatedCode.plan === "super_admin" ? "#1e40af" : "#166534",
+    }}>
+      {validatedCode.plan === "trial" ? "🆓 FREE TRIAL" :
+       validatedCode.plan === "super_admin" ? "👑 SUPER ADMIN" :
+       validatedCode.plan === "premium" ? "⭐ PREMIUM" :
+       validatedCode.plan === "assisted" ? "🤝 ASSISTED" :
+       "✅ BASIC"} PLAN
+    </div>
+  ) : null;
 
   return (
     <div style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", color: "#1e293b" }} onClick={handleHeroClick}>
@@ -219,7 +341,7 @@ export default function LoginPage() {
 
           <div style={{ display: "flex", borderRadius: 20, padding: 4, background: "rgba(255,255,255,0.06)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 20 }}>
             {["login", "register"].map(m => (
-              <button key={m} onClick={() => { setMode(m); setStep(1); setError(""); setSuccess(""); }} style={{ flex: 1, padding: "14px 0", borderRadius: 16, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 800, fontFamily: "'DM Sans', sans-serif", letterSpacing: 0.5, transition: "all 0.4s cubic-bezier(0.34,1.56,0.64,1)", background: mode === m ? "white" : "transparent", color: mode === m ? "#1e293b" : "rgba(255,255,255,0.4)", boxShadow: mode === m ? "0 4px 20px rgba(0,0,0,0.15)" : "none" }}>{m === "login" ? "✨ Sign In" : "🚀 Register School"}</button>
+              <button key={m} onClick={() => { setMode(m); setStep(m === "register" ? 0 : 1); setError(""); setSuccess(""); setValidatedCode(null); setRegistrationType(null); }} style={{ flex: 1, padding: "14px 0", borderRadius: 16, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 800, fontFamily: "'DM Sans', sans-serif", letterSpacing: 0.5, transition: "all 0.4s cubic-bezier(0.34,1.56,0.64,1)", background: mode === m ? "white" : "transparent", color: mode === m ? "#1e293b" : "rgba(255,255,255,0.4)", boxShadow: mode === m ? "0 4px 20px rgba(0,0,0,0.15)" : "none" }}>{m === "login" ? "✨ Sign In" : "🚀 Register School"}</button>
             ))}
           </div>
 
@@ -238,25 +360,87 @@ export default function LoginPage() {
 
             {mode === "register" && (
               <>
+                {/* Step indicator - shows steps 1-4 (gate + 3 registration steps) */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 24 }}>
-                  {[{ n: 1, i: "🏫" }, { n: 2, i: "🎨" }, { n: 3, i: "👤" }].map((s, idx) => (
+                  {[{ n: 0, i: "🔑" }, { n: 1, i: "🏫" }, { n: 2, i: "🎨" }, { n: 3, i: "👤" }].map((s, idx) => (
                     <div key={s.n} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <div style={{ width: 44, height: 44, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, transition: "all 0.5s cubic-bezier(0.34,1.56,0.64,1)", background: step >= s.n ? "linear-gradient(135deg, #2563eb, #7c3aed)" : "#f1f5f9", color: step >= s.n ? "white" : "#94a3b8", boxShadow: step >= s.n ? "0 4px 16px rgba(99,102,241,0.3)" : "none" }}>{s.i}</div>
-                      {idx < 2 && <div style={{ width: 24, height: 3, borderRadius: 2, background: step > s.n ? "linear-gradient(90deg, #2563eb, #7c3aed)" : "#e2e8f0", transition: "all 0.5s" }} />}
+                      <div style={{ width: 40, height: 40, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, transition: "all 0.5s cubic-bezier(0.34,1.56,0.64,1)", background: step >= s.n ? "linear-gradient(135deg, #2563eb, #7c3aed)" : "#f1f5f9", color: step >= s.n ? "white" : "#94a3b8", boxShadow: step >= s.n ? "0 4px 16px rgba(99,102,241,0.3)" : "none" }}>{s.i}</div>
+                      {idx < 3 && <div style={{ width: 18, height: 3, borderRadius: 2, background: step > s.n ? "linear-gradient(90deg, #2563eb, #7c3aed)" : "#e2e8f0", transition: "all 0.5s" }} />}
                     </div>
                   ))}
                 </div>
 
+                {/* STEP 0: ACCESS CODE GATE */}
+                {step === 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16, animation: "slideUp 0.4s ease-out" }}>
+                    <div style={{ textAlign: "center", marginBottom: 4 }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", marginBottom: 4 }}>How would you like to register?</div>
+                      <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>Enter an access code or try us for free</div>
+                    </div>
+
+                    {/* Access Code Option */}
+                    <div style={{ background: "#f8fafc", borderRadius: 16, padding: 20, border: "1px solid #e2e8f0" }}>
+                      <div style={{ fontSize: 12, fontWeight: 900, color: "#6366f1", letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>🔐 I have an access code</div>
+                      <input
+                        type="text"
+                        value={accessCode}
+                        onChange={e => setAccessCode(e.target.value.toUpperCase())}
+                        onKeyDown={e => e.key === "Enter" && validateAccessCode()}
+                        style={{ ...iStyle, textAlign: "center", letterSpacing: 4, fontSize: 18, fontWeight: 900, textTransform: "uppercase" }}
+                        onFocus={iFocus}
+                        onBlur={iBlur}
+                        placeholder="ENTER CODE"
+                        maxLength={10}
+                      />
+                      <button onClick={validateAccessCode} disabled={loading} style={{ ...btnPrimary, marginTop: 12, opacity: loading ? 0.6 : 1 }}>
+                        {loading ? "Validating..." : "Validate Code →"}
+                      </button>
+                    </div>
+
+                    {/* Divider */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
+                      <span style={{ fontSize: 12, fontWeight: 800, color: "#94a3b8" }}>OR</span>
+                      <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
+                    </div>
+
+                    {/* Free Trial Option */}
+                    <button onClick={startFreeTrial} style={{
+                      width: "100%", padding: 18, borderRadius: 18, border: "2px solid #e2e8f0",
+                      background: "white", color: "#0f172a", fontSize: 15, fontWeight: 800,
+                      cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                      transition: "all 0.3s ease",
+                    }}>
+                      🆓 Start Free Trial
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8", marginTop: 4 }}>
+                        1 class • 15 students • Preview only (no printing)
+                      </div>
+                    </button>
+
+                    <div style={{ textAlign: "center", fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>
+                      Need an access code? Contact us at <strong style={{ color: "#6366f1" }}>0907 909 8659</strong>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 1: School Info */}
                 {step === 1 && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14, animation: "slideUp 0.4s ease-out" }}>
+                    <div style={{ textAlign: "center" }}>{planBadge}</div>
                     <div><label style={labelStyle}>School Name *</label><input type="text" value={schoolName} onChange={e => setSchoolName(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Ifelyn Smart Kids Academy" /></div>
                     <div><label style={labelStyle}>Address</label><input type="text" value={schoolAddress} onChange={e => setSchoolAddress(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Asaba, Delta State" /></div>
                     <div><label style={labelStyle}>Motto</label><input type="text" value={schoolMotto} onChange={e => setSchoolMotto(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Knowledge is Power" /></div>
-                    <button onClick={nextStep} style={btnPrimary}>Continue →</button>
+                    <div style={{ display: "flex", gap: 12 }}>
+                      <button onClick={() => { setError(""); setStep(0); setValidatedCode(null); setRegistrationType(null); }} style={{ padding: "16px 22px", borderRadius: 16, border: "2px solid #e2e8f0", background: "white", color: "#64748b", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>←</button>
+                      <button onClick={nextStep} style={{ ...btnPrimary, flex: 1 }}>Continue →</button>
+                    </div>
                   </div>
                 )}
+
+                {/* STEP 2: Logo Upload */}
                 {step === 2 && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "center" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "center", animation: "slideUp 0.4s ease-out" }}>
+                    <div style={{ textAlign: "center" }}>{planBadge}</div>
                     <div onClick={() => fileInputRef.current?.click()} style={{ width: 130, height: 130, borderRadius: 28, border: "3px dashed #cbd5e1", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", background: logoPreview ? "white" : "linear-gradient(135deg, #f8fafc, #eef2ff)", overflow: "hidden" }}>
                       {logoPreview ? <img src={logoPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <div style={{ textAlign: "center" }}><div style={{ fontSize: 40 }}>📷</div><div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800, marginTop: 4 }}>Upload Logo</div></div>}
                     </div>
@@ -269,12 +453,25 @@ export default function LoginPage() {
                     </div>
                   </div>
                 )}
+
+                {/* STEP 3: Account Details */}
                 {step === 3 && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14, animation: "slideUp 0.4s ease-out" }}>
+                    <div style={{ textAlign: "center" }}>{planBadge}</div>
                     <div><label style={labelStyle}>Full Name *</label><input type="text" value={fullName} onChange={e => setFullName(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Mrs. Okonkwo" /></div>
+                    {registrationType === "trial" && (
+                      <div><label style={labelStyle}>Phone Number *</label><input type="tel" value={phone} onChange={e => setPhone(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. 0907 909 8659" /></div>
+                    )}
                     <div><label style={labelStyle}>Email *</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="admin@school.com" /></div>
                     <div><label style={labelStyle}>Password *</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="At least 6 characters" /></div>
                     <div><label style={labelStyle}>Confirm Password *</label><input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleRegister()} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="••••••••" /></div>
+
+                    {registrationType === "trial" && (
+                      <div style={{ background: "#fef3c7", border: "1px solid #fbbf24", borderRadius: 14, padding: "10px 14px", fontSize: 11, color: "#92400e", fontWeight: 600, lineHeight: 1.5 }}>
+                        ⚠️ Free trial: 1 class, 15 students max, no printing. Upgrade anytime by contacting us.
+                      </div>
+                    )}
+
                     <div style={{ display: "flex", gap: 12 }}>
                       <button onClick={() => { setError(""); setStep(2); }} style={{ padding: "16px 22px", borderRadius: 16, border: "2px solid #e2e8f0", background: "white", color: "#64748b", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>←</button>
                       <button onClick={handleRegister} disabled={loading} style={{ ...btnPrimary, flex: 1, opacity: loading ? 0.6 : 1 }}>{loading ? "Creating school..." : "Create School 🚀"}</button>
