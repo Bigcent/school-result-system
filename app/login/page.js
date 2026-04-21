@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 const PARTICLES = Array.from({ length: 30 }, (_, i) => ({
   id: i, x: Math.random() * 100, size: Math.random() * 4 + 2,
@@ -68,10 +69,10 @@ function ScrollReveal({ children, delay = 0, direction = "up" }) {
 function LoginPageContent() {
   const searchParams = useSearchParams();
   const [mode, setMode] = useState("login");
-  const [step, setStep] = useState(0); // 0 = access code gate, 1-3 = registration steps
+  const [step, setStep] = useState(0);
   const [accessCode, setAccessCode] = useState("");
-  const [validatedCode, setValidatedCode] = useState(null); // stores validated code data
-  const [registrationType, setRegistrationType] = useState(null); // "code" or "trial"
+  const [validatedCode, setValidatedCode] = useState(null);
+  const [registrationType, setRegistrationType] = useState(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -94,7 +95,6 @@ function LoginPageContent() {
 
   useEffect(() => {
     setTimeout(() => setLoaded(true), 100);
-    // Check for invite link code in URL
     const urlCode = searchParams.get("code");
     if (urlCode) {
       setAccessCode(urlCode.toUpperCase());
@@ -142,7 +142,6 @@ function LoginPageContent() {
     setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); setError("");
   };
 
-  // Validate access code against database
   const validateAccessCode = async () => {
     if (!accessCode.trim()) { setError("Please enter your access code."); return; }
     setLoading(true); setError("");
@@ -168,7 +167,6 @@ function LoginPageContent() {
         setLoading(false);
         return;
       }
-      // Code is valid
       setValidatedCode(data);
       setRegistrationType("code");
       setStep(1);
@@ -179,7 +177,6 @@ function LoginPageContent() {
     setLoading(false);
   };
 
-  // Start free trial
   const startFreeTrial = () => {
     setRegistrationType("trial");
     setValidatedCode({
@@ -208,7 +205,6 @@ function LoginPageContent() {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) { setError("Account created but sign in failed: " + signInError.message); setMode("login"); setLoading(false); return; }
 
-      // Determine plan settings from validated code
       const plan = validatedCode?.plan || "trial";
       const maxClasses = validatedCode?.max_classes ?? 1;
       const maxStudents = validatedCode?.max_students_per_class ?? 15;
@@ -229,7 +225,6 @@ function LoginPageContent() {
 
       if (schoolError || !schoolData) { setError("School creation failed: " + (schoolError?.message || "Unknown")); setLoading(false); return; }
 
-      // Mark access code as used (if using a code)
       if (registrationType === "code" && validatedCode?.id) {
         await supabase.from("access_codes").update({
           used: true,
@@ -248,7 +243,6 @@ function LoginPageContent() {
         }
       }
 
-      // Determine user role
       const userRole = plan === "super_admin" ? "super_admin" : "admin";
 
       const { error: userError } = await supabase.from("users").insert({
@@ -282,7 +276,6 @@ function LoginPageContent() {
   const labelStyle = { display: "block", fontSize: 11, fontWeight: 900, color: "#64748b", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 };
   const btnPrimary = { width: "100%", padding: 18, borderRadius: 18, border: "none", background: "linear-gradient(135deg, #1e3a5f, #2563eb, #7c3aed)", backgroundSize: "200% 200%", color: "white", fontSize: 16, fontWeight: 900, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 6px 24px rgba(37,99,235,0.35)", transition: "all 0.3s ease", letterSpacing: 0.5 };
 
-  // Plan badge for registration
   const planBadge = validatedCode ? (
     <div style={{
       display: "inline-flex", alignItems: "center", gap: 6,
@@ -359,7 +352,6 @@ function LoginPageContent() {
 
             {mode === "register" && (
               <>
-                {/* Step indicator - shows steps 1-4 (gate + 3 registration steps) */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 24 }}>
                   {[{ n: 0, i: "🔑" }, { n: 1, i: "🏫" }, { n: 2, i: "🎨" }, { n: 3, i: "👤" }].map((s, idx) => (
                     <div key={s.n} style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -369,60 +361,30 @@ function LoginPageContent() {
                   ))}
                 </div>
 
-                {/* STEP 0: ACCESS CODE GATE */}
                 {step === 0 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 16, animation: "slideUp 0.4s ease-out" }}>
                     <div style={{ textAlign: "center", marginBottom: 4 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", marginBottom: 4 }}>How would you like to register?</div>
                       <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>Enter an access code or try us for free</div>
                     </div>
-
-                    {/* Access Code Option */}
                     <div style={{ background: "#f8fafc", borderRadius: 16, padding: 20, border: "1px solid #e2e8f0" }}>
                       <div style={{ fontSize: 12, fontWeight: 900, color: "#6366f1", letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>🔐 I have an access code</div>
-                      <input
-                        type="text"
-                        value={accessCode}
-                        onChange={e => setAccessCode(e.target.value.toUpperCase())}
-                        onKeyDown={e => e.key === "Enter" && validateAccessCode()}
-                        style={{ ...iStyle, textAlign: "center", letterSpacing: 4, fontSize: 18, fontWeight: 900, textTransform: "uppercase" }}
-                        onFocus={iFocus}
-                        onBlur={iBlur}
-                        placeholder="ENTER CODE"
-                        maxLength={10}
-                      />
-                      <button onClick={validateAccessCode} disabled={loading} style={{ ...btnPrimary, marginTop: 12, opacity: loading ? 0.6 : 1 }}>
-                        {loading ? "Validating..." : "Validate Code →"}
-                      </button>
+                      <input type="text" value={accessCode} onChange={e => setAccessCode(e.target.value.toUpperCase())} onKeyDown={e => e.key === "Enter" && validateAccessCode()} style={{ ...iStyle, textAlign: "center", letterSpacing: 4, fontSize: 18, fontWeight: 900, textTransform: "uppercase" }} onFocus={iFocus} onBlur={iBlur} placeholder="ENTER CODE" maxLength={10} />
+                      <button onClick={validateAccessCode} disabled={loading} style={{ ...btnPrimary, marginTop: 12, opacity: loading ? 0.6 : 1 }}>{loading ? "Validating..." : "Validate Code →"}</button>
                     </div>
-
-                    {/* Divider */}
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
                       <span style={{ fontSize: 12, fontWeight: 800, color: "#94a3b8" }}>OR</span>
                       <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
                     </div>
-
-                    {/* Free Trial Option */}
-                    <button onClick={startFreeTrial} style={{
-                      width: "100%", padding: 18, borderRadius: 18, border: "2px solid #e2e8f0",
-                      background: "white", color: "#0f172a", fontSize: 15, fontWeight: 800,
-                      cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-                      transition: "all 0.3s ease",
-                    }}>
+                    <button onClick={startFreeTrial} style={{ width: "100%", padding: 18, borderRadius: 18, border: "2px solid #e2e8f0", background: "white", color: "#0f172a", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", transition: "all 0.3s ease" }}>
                       🆓 Start Free Trial
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8", marginTop: 4 }}>
-                        1 class • 15 students • Preview only (no printing)
-                      </div>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8", marginTop: 4 }}>1 class • 15 students • Preview only (no printing)</div>
                     </button>
-
-                    <div style={{ textAlign: "center", fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>
-                      Need an access code? Contact us at <strong style={{ color: "#6366f1" }}>0907 909 8659</strong>
-                    </div>
+                    <div style={{ textAlign: "center", fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>Need an access code? Contact us at <strong style={{ color: "#6366f1" }}>0907 909 8659</strong></div>
                   </div>
                 )}
 
-                {/* STEP 1: School Info */}
                 {step === 1 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 14, animation: "slideUp 0.4s ease-out" }}>
                     <div style={{ textAlign: "center" }}>{planBadge}</div>
@@ -436,7 +398,6 @@ function LoginPageContent() {
                   </div>
                 )}
 
-                {/* STEP 2: Logo Upload */}
                 {step === 2 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "center", animation: "slideUp 0.4s ease-out" }}>
                     <div style={{ textAlign: "center" }}>{planBadge}</div>
@@ -453,7 +414,6 @@ function LoginPageContent() {
                   </div>
                 )}
 
-                {/* STEP 3: Account Details */}
                 {step === 3 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 14, animation: "slideUp 0.4s ease-out" }}>
                     <div style={{ textAlign: "center" }}>{planBadge}</div>
@@ -464,13 +424,11 @@ function LoginPageContent() {
                     <div><label style={labelStyle}>Email *</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="admin@school.com" /></div>
                     <div><label style={labelStyle}>Password *</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="At least 6 characters" /></div>
                     <div><label style={labelStyle}>Confirm Password *</label><input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleRegister()} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="••••••••" /></div>
-
                     {registrationType === "trial" && (
                       <div style={{ background: "#fef3c7", border: "1px solid #fbbf24", borderRadius: 14, padding: "10px 14px", fontSize: 11, color: "#92400e", fontWeight: 600, lineHeight: 1.5 }}>
                         ⚠️ Free trial: 1 class, 15 students max, no printing. Upgrade anytime by contacting us.
                       </div>
                     )}
-
                     <div style={{ display: "flex", gap: 12 }}>
                       <button onClick={() => { setError(""); setStep(2); }} style={{ padding: "16px 22px", borderRadius: 16, border: "2px solid #e2e8f0", background: "white", color: "#64748b", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>←</button>
                       <button onClick={handleRegister} disabled={loading} style={{ ...btnPrimary, flex: 1, opacity: loading ? 0.6 : 1 }}>{loading ? "Creating school..." : "Create School 🚀"}</button>
@@ -595,6 +553,7 @@ function LoginPageContent() {
     </div>
   );
 }
+
 export default function LoginPage() {
   return (
     <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0d1233" }}><div style={{ color: "white", fontSize: 16 }}>Loading...</div></div>}>
