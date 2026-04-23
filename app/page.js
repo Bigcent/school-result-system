@@ -21,14 +21,12 @@ const STEPS = [
 const PRICING = [
   { name: "Basic", price: "₦500", period: "per student / term", desc: "Self-service platform", features: ["Full platform access", "Generate report cards", "Print broadsheets", "Online access"], highlight: false },
   { name: "Assisted", price: "₦1,000", period: "per student / term", desc: "We help format & review", features: ["Everything in Basic", "We format your scores", "We review for errors", "Ready-to-print delivery"], highlight: true },
-  { name: "Premium", price: "₦1,500", period: "per student / term", desc: "Fully done-for-you", features: ["Everything in Assisted", "We process everything", "Printed & delivered", "Priority support"], highlight: false },
+  { name: "Premium", price: "₦2,000", period: "per student / term", desc: "Fully done-for-you", features: ["Everything in Assisted", "We process everything", "Printed & delivered", "Priority support"], highlight: false },
 ];
 
-// Theme: Academic Navy + Gold
 const NAVY = "#0F2847";
 const NAVY_LIGHT = "#1E3A5F";
 const GOLD = "#D4A017";
-const GOLD_LIGHT = "#E8BE3E";
 const CREAM = "#FAF7F0";
 const CREAM_WARM = "#F5EFDF";
 
@@ -62,20 +60,20 @@ export default function HomePage() {
             <div style={{ width: 38, height: 38, borderRadius: 10, background: NAVY, border: `2px solid ${GOLD}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: GOLD, fontWeight: 900, fontFamily: "'Playfair Display', serif" }}>EA</div>
             <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 900, color: NAVY }}>EasyAcad</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
             <span className="nav-link" onClick={() => scrollTo("features")} style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, cursor: "pointer", transition: "color 0.2s" }}>Features</span>
             <span className="nav-link" onClick={() => scrollTo("how")} style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, cursor: "pointer", transition: "color 0.2s" }}>How It Works</span>
             <span className="nav-link" onClick={() => scrollTo("pricing")} style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, cursor: "pointer", transition: "color 0.2s" }}>Pricing</span>
+            <Link href="/demo" className="nav-link" style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, textDecoration: "none", transition: "color 0.2s" }}>Demo</Link>
             <span className="nav-link" onClick={() => scrollTo("contact")} style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, cursor: "pointer", transition: "color 0.2s" }}>Contact</span>
             <Link href="/login" style={{ fontSize: 14, fontWeight: 700, color: NAVY, textDecoration: "none" }}>Sign In</Link>
-            <Link href="/login" className="btn-gold" style={{ padding: "10px 20px", borderRadius: 10, background: GOLD, color: NAVY, fontSize: 14, fontWeight: 900, textDecoration: "none", transition: "all 0.3s ease", display: "inline-block", border: `2px solid ${GOLD}` }}>Get Started</Link>
+            <Link href="/pricing" className="btn-gold" style={{ padding: "10px 20px", borderRadius: 10, background: GOLD, color: NAVY, fontSize: 14, fontWeight: 900, textDecoration: "none", transition: "all 0.3s ease", display: "inline-block", border: `2px solid ${GOLD}` }}>Get Started</Link>
           </div>
         </div>
       </nav>
 
       {/* HERO */}
       <section id="top" style={{ minHeight: "100vh", paddingTop: 100, background: `linear-gradient(180deg, ${CREAM} 0%, ${CREAM_WARM} 100%)`, display: "flex", alignItems: "center", justifyContent: "center", padding: "130px 24px 80px", position: "relative", overflow: "hidden" }}>
-        {/* Decorative elements */}
         <div style={{ position: "absolute", top: "15%", left: "8%", width: 200, height: 200, borderRadius: "50%", background: `radial-gradient(circle, ${GOLD}22, transparent)`, filter: "blur(40px)" }} />
         <div style={{ position: "absolute", bottom: "10%", right: "8%", width: 250, height: 250, borderRadius: "50%", background: `radial-gradient(circle, ${NAVY}22, transparent)`, filter: "blur(50px)" }} />
 
@@ -92,7 +90,7 @@ export default function HomePage() {
           </p>
 
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-            <Link href="/login" className="btn-primary" style={{ padding: "16px 34px", borderRadius: 12, background: NAVY, color: "white", fontSize: 16, fontWeight: 800, textDecoration: "none", boxShadow: "0 8px 24px rgba(15,40,71,0.25)", transition: "all 0.3s ease", display: "inline-block" }}>Get Started Free →</Link>
+            <Link href="/pricing" className="btn-primary" style={{ padding: "16px 34px", borderRadius: 12, background: NAVY, color: "white", fontSize: 16, fontWeight: 800, textDecoration: "none", boxShadow: "0 8px 24px rgba(15,40,71,0.25)", transition: "all 0.3s ease", display: "inline-block" }}>Get Started →</Link>
             <Link href="/demo" style={{ padding: "16px 34px", borderRadius: 12, background: "white", border: `2px solid ${NAVY}`, color: NAVY, fontSize: 16, fontWeight: 800, textDecoration: "none", transition: "all 0.3s ease", display: "inline-block" }}>▶ Watch Demo</Link>
           </div>
 
@@ -157,7 +155,7 @@ export default function HomePage() {
             {PRICING.map((p, i) => (
               <div key={i} className="price-card" style={{ background: p.highlight ? NAVY : "white", color: p.highlight ? "white" : NAVY, borderRadius: 22, padding: 36, border: p.highlight ? `2px solid ${GOLD}` : `1.5px solid ${GOLD}44`, position: "relative", transition: "all 0.3s ease", boxShadow: p.highlight ? "0 16px 40px rgba(15,40,71,0.25)" : "none" }}>
                 {p.highlight && <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: GOLD, color: NAVY, padding: "5px 18px", borderRadius: 999, fontSize: 11, fontWeight: 900, letterSpacing: 1.5 }}>MOST POPULAR</div>}
-                <h3 style={{ fontSize: 13, fontWeight: 900, letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 14, color: p.highlight ? GOLD : GOLD }}>{p.name}</h3>
+                <h3 style={{ fontSize: 13, fontWeight: 900, letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 14, color: GOLD }}>{p.name}</h3>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 6 }}>
                   <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 46, fontWeight: 900 }}>{p.price}</span>
                 </div>
@@ -171,7 +169,10 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/demo" style={{ display: "block", textAlign: "center", padding: "14px", borderRadius: 10, background: p.highlight ? GOLD : NAVY, color: p.highlight ? NAVY : "white", fontSize: 14, fontWeight: 900, textDecoration: "none" }}>Book a Demo</Link>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <Link href="/pricing" style={{ flex: 1, display: "block", textAlign: "center", padding: "14px", borderRadius: 10, background: p.highlight ? GOLD : NAVY, color: p.highlight ? NAVY : "white", fontSize: 14, fontWeight: 900, textDecoration: "none" }}>Get Access</Link>
+                  <Link href="/demo" style={{ display: "block", textAlign: "center", padding: "14px 16px", borderRadius: 10, background: "transparent", border: p.highlight ? "2px solid white" : `2px solid ${NAVY}`, color: p.highlight ? "white" : NAVY, fontSize: 14, fontWeight: 900, textDecoration: "none" }}>Demo</Link>
+                </div>
               </div>
             ))}
           </div>
@@ -184,7 +185,13 @@ export default function HomePage() {
         <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center", position: "relative" }}>
           <div style={{ fontSize: 12, fontWeight: 900, color: GOLD, letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Get In Touch</div>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 44, fontWeight: 900, marginBottom: 16 }}>Ready to start?</h2>
-          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.75)", marginBottom: 40, fontWeight: 500 }}>Book a free demo or contact us directly.</p>
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.75)", marginBottom: 40, fontWeight: 500 }}>Get instant access or talk to us directly.</p>
+
+          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 40 }}>
+            <Link href="/pricing" style={{ padding: "16px 32px", borderRadius: 12, background: GOLD, color: NAVY, fontSize: 16, fontWeight: 900, textDecoration: "none", transition: "all 0.3s ease" }}>Get Access Now →</Link>
+            <Link href="/demo" style={{ padding: "16px 32px", borderRadius: 12, background: "transparent", border: "2px solid white", color: "white", fontSize: 16, fontWeight: 900, textDecoration: "none", transition: "all 0.3s ease" }}>Watch Demo</Link>
+          </div>
+
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20 }}>
             {[
               { icon: "📧", label: "Email", value: "hello@geteasyacad.com" },

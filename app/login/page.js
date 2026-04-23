@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 
 const PARTICLES = Array.from({ length: 30 }, (_, i) => ({
   id: i, x: Math.random() * 100, size: Math.random() * 4 + 2,
@@ -28,43 +29,6 @@ const SCHOOL_ITEMS = [
   { emoji: "⚽", x: 45, y: 90, delay: 0.9 },
   { emoji: "🌍", x: 92, y: 30, delay: 1.7 },
 ];
-
-const FEATURES = [
-  { icon: "⚡", title: "Instant Results", desc: "Enter scores once — totals, rankings, and grades calculate automatically in real time." },
-  { icon: "📊", title: "Smart Report Cards", desc: "Professional report cards with auto-generated remarks, attendance, and school branding." },
-  { icon: "🎨", title: "Your School, Your Brand", desc: "Custom colors, logo upload, and personalized interface for every school." },
-  { icon: "🖨️", title: "Print-Ready", desc: "Report cards and class rankings print beautifully with full color on A4 paper." },
-  { icon: "🔒", title: "Secure & Private", desc: "Each school's data is completely isolated. Only your staff can access results." },
-  { icon: "📱", title: "Works Everywhere", desc: "Use on phone, tablet, or laptop. No app download needed — just open your browser." },
-];
-
-const STEPS = [
-  { num: "01", icon: "🏫", title: "Register Your School", desc: "Enter school name, address, motto, and upload your logo. Takes 2 minutes." },
-  { num: "02", icon: "📋", title: "Set Up Classes & Subjects", desc: "Add classes and pick subjects from our library of 30+ Nigerian curriculum subjects." },
-  { num: "03", icon: "✏️", title: "Enter Scores", desc: "Simple spreadsheet-style grid. Just type CA1, CA2, and Exam scores." },
-  { num: "04", icon: "📄", title: "Print Report Cards", desc: "Rankings, remarks, attendance — ready to distribute to parents." },
-];
-
-function ScrollReveal({ children, delay = 0, direction = "up" }) {
-  const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.15 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-  const transforms = { up: "translateY(50px)", left: "translateX(-50px)", right: "translateX(50px)", scale: "scale(0.85)" };
-  return (
-    <div ref={ref} style={{
-      transition: `all 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s`,
-      transform: visible ? "translateY(0) translateX(0) scale(1)" : transforms[direction],
-      opacity: visible ? 1 : 0,
-    }}>{children}</div>
-  );
-}
 
 function LoginPageContent() {
   const searchParams = useSearchParams();
@@ -105,7 +69,7 @@ function LoginPageContent() {
 
   const handleHeroClick = (e) => {
     if (!heroRef.current?.contains(e.target)) return;
-    if (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON") return;
+    if (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON" || e.target.tagName === "A") return;
     const rect = heroRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -151,40 +115,20 @@ function LoginPageContent() {
         .select("*")
         .eq("code", accessCode.trim().toUpperCase())
         .single();
-
-      if (fetchError || !data) {
-        setError("Invalid access code. Please check and try again.");
-        setLoading(false);
-        return;
-      }
-      if (data.used) {
-        setError("This access code has already been used.");
-        setLoading(false);
-        return;
-      }
-      if (new Date(data.expires_at) < new Date()) {
-        setError("This access code has expired. Contact us for a new one.");
-        setLoading(false);
-        return;
-      }
+      if (fetchError || !data) { setError("Invalid access code. Please check and try again."); setLoading(false); return; }
+      if (data.used) { setError("This access code has already been used."); setLoading(false); return; }
+      if (new Date(data.expires_at) < new Date()) { setError("This access code has expired. Contact us for a new one."); setLoading(false); return; }
       setValidatedCode(data);
       setRegistrationType("code");
       setStep(1);
       setError("");
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
-    }
+    } catch (err) { setError("Something went wrong. Please try again."); }
     setLoading(false);
   };
 
   const startFreeTrial = () => {
     setRegistrationType("trial");
-    setValidatedCode({
-      plan: "trial",
-      max_classes: 1,
-      max_students_per_class: 15,
-      can_print: false,
-    });
+    setValidatedCode({ plan: "trial", max_classes: 1, max_students_per_class: 15, can_print: false });
     setStep(1);
     setError("");
   };
@@ -204,35 +148,20 @@ function LoginPageContent() {
       if (!userId) { setError("Registration failed."); setLoading(false); return; }
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) { setError("Account created but sign in failed: " + signInError.message); setMode("login"); setLoading(false); return; }
-
       const plan = validatedCode?.plan || "trial";
       const maxClasses = validatedCode?.max_classes ?? 1;
       const maxStudents = validatedCode?.max_students_per_class ?? 15;
       const canPrint = validatedCode?.can_print ?? false;
-
       const { data: schoolData, error: schoolError } = await supabase.from("schools").insert({
-        name: schoolName.trim(),
-        address: schoolAddress.trim() || null,
-        motto: schoolMotto.trim() || null,
-        theme: "royal",
-        plan: plan,
-        max_classes: maxClasses,
-        max_students_per_class: maxStudents,
-        can_print: canPrint,
+        name: schoolName.trim(), address: schoolAddress.trim() || null, motto: schoolMotto.trim() || null, theme: "royal",
+        plan, max_classes: maxClasses, max_students_per_class: maxStudents, can_print: canPrint,
         access_code_used: registrationType === "code" ? accessCode.trim().toUpperCase() : null,
         trial_expires_at: plan === "trial" ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null,
       }).select().single();
-
       if (schoolError || !schoolData) { setError("School creation failed: " + (schoolError?.message || "Unknown")); setLoading(false); return; }
-
       if (registrationType === "code" && validatedCode?.id) {
-        await supabase.from("access_codes").update({
-          used: true,
-          used_by: schoolData.id,
-          used_at: new Date().toISOString(),
-        }).eq("id", validatedCode.id);
+        await supabase.from("access_codes").update({ used: true, used_by: schoolData.id, used_at: new Date().toISOString() }).eq("id", validatedCode.id);
       }
-
       if (logoFile) {
         const ext = logoFile.name.split(".").pop();
         const fname = `${schoolData.id}-logo.${ext}`;
@@ -242,15 +171,8 @@ function LoginPageContent() {
           await supabase.from("schools").update({ logo_url: urlData.publicUrl + "?t=" + Date.now() }).eq("id", schoolData.id);
         }
       }
-
       const userRole = plan === "super_admin" ? "super_admin" : "admin";
-
-      const { error: userError } = await supabase.from("users").insert({
-        id: userId,
-        school_id: schoolData.id,
-        full_name: fullName.trim(),
-        role: userRole,
-      });
+      const { error: userError } = await supabase.from("users").insert({ id: userId, school_id: schoolData.id, full_name: fullName.trim(), role: userRole });
       if (userError) { setError("Profile creation failed: " + userError.message); setLoading(false); return; }
       window.location.href = "/dashboard";
     } catch (err) { setError("Something went wrong: " + (err.message || "Unknown")); setLoading(false); }
@@ -278,18 +200,13 @@ function LoginPageContent() {
 
   const planBadge = validatedCode ? (
     <div style={{
-      display: "inline-flex", alignItems: "center", gap: 6,
-      padding: "6px 14px", borderRadius: 999, marginBottom: 16,
+      display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 999, marginBottom: 16,
       background: validatedCode.plan === "trial" ? "#fef3c7" : validatedCode.plan === "super_admin" ? "#dbeafe" : "#dcfce7",
       border: `1px solid ${validatedCode.plan === "trial" ? "#fbbf24" : validatedCode.plan === "super_admin" ? "#3b82f6" : "#16a34a"}`,
       fontSize: 11, fontWeight: 800, letterSpacing: 1,
       color: validatedCode.plan === "trial" ? "#92400e" : validatedCode.plan === "super_admin" ? "#1e40af" : "#166534",
     }}>
-      {validatedCode.plan === "trial" ? "🆓 FREE TRIAL" :
-       validatedCode.plan === "super_admin" ? "👑 SUPER ADMIN" :
-       validatedCode.plan === "premium" ? "⭐ PREMIUM" :
-       validatedCode.plan === "assisted" ? "🤝 ASSISTED" :
-       "✅ BASIC"} PLAN
+      {validatedCode.plan === "trial" ? "🆓 FREE TRIAL" : validatedCode.plan === "super_admin" ? "👑 SUPER ADMIN" : validatedCode.plan === "premium" ? "⭐ PREMIUM" : validatedCode.plan === "assisted" ? "🤝 ASSISTED" : "✅ BASIC"} PLAN
     </div>
   ) : null;
 
@@ -305,11 +222,8 @@ function LoginPageContent() {
         @keyframes slideUp { 0% { transform: translateY(40px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
         @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
         @keyframes wave { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 75% { transform: rotate(-15deg); } }
-        @keyframes ringPulse { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 0.2; } 100% { transform: scale(0.8); opacity: 0.5; } }
         @keyframes gradientOrb { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(30px,-20px) scale(1.1); } 50% { transform: translate(-10px,20px) scale(0.95); } 75% { transform: translate(20px,10px) scale(1.05); } }
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .feat-card:hover { transform: translateY(-8px) scale(1.02) !important; box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important; }
-        .step-card:hover { transform: scale(1.02) !important; box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
       `}</style>
@@ -381,7 +295,9 @@ function LoginPageContent() {
                       🆓 Start Free Trial
                       <div style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8", marginTop: 4 }}>1 class • 15 students • Preview only (no printing)</div>
                     </button>
-                    <div style={{ textAlign: "center", fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>Need an access code? Contact us at <strong style={{ color: "#6366f1" }}>0907 909 8659</strong></div>
+                    <div style={{ textAlign: "center", fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>
+                      Need an access code? <Link href="/pricing" style={{ color: "#6366f1", fontWeight: 800, textDecoration: "none" }}>Purchase a plan here</Link> or call <strong style={{ color: "#6366f1" }}>0907 909 8659</strong>
+                    </div>
                   </div>
                 )}
 
@@ -439,116 +355,6 @@ function LoginPageContent() {
             )}
           </div>
         </div>
-      </div>
-
-      <div style={{ background: "white", padding: "90px 20px", textAlign: "center" }}>
-        <ScrollReveal><div style={{ maxWidth: 700, margin: "0 auto" }}>
-          <div style={{ fontSize: 13, fontWeight: 900, color: "#6366f1", letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Welcome to EasyAcad</div>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 40, fontWeight: 900, color: "#0f172a", lineHeight: 1.2, marginBottom: 20 }}>The simplest way to generate school report cards</h2>
-          <p style={{ fontSize: 17, color: "#64748b", lineHeight: 1.8, fontWeight: 500 }}>Teachers spend days calculating totals, ranking students, and filling report cards manually. EasyAcad eliminates that stress completely. Enter scores once — everything else is automatic.</p>
-        </div></ScrollReveal>
-      </div>
-
-      <div style={{ background: "#f8fafc", padding: "90px 20px" }}>
-        <div style={{ maxWidth: 920, margin: "0 auto" }}>
-          <ScrollReveal>
-            <div style={{ textAlign: "center", marginBottom: 50 }}>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "#6366f1", letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Features</div>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 900, color: "#0f172a" }}>Everything your school needs</h2>
-            </div>
-          </ScrollReveal>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: 20 }}>
-            {FEATURES.map((f, i) => (
-              <ScrollReveal key={i} delay={i * 0.1} direction={i % 2 === 0 ? "left" : "right"}>
-                <div className="feat-card" style={{ background: "white", borderRadius: 22, padding: 30, boxShadow: "0 4px 16px rgba(0,0,0,0.04)", transition: "all 0.3s ease", border: "1px solid #f1f5f9", height: "100%" }}>
-                  <div style={{ fontSize: 40, marginBottom: 16 }}>{f.icon}</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: "#0f172a", marginBottom: 8 }}>{f.title}</div>
-                  <div style={{ fontSize: 14, color: "#64748b", lineHeight: 1.7, fontWeight: 500 }}>{f.desc}</div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ background: "white", padding: "90px 20px" }}>
-        <div style={{ maxWidth: 800, margin: "0 auto" }}>
-          <ScrollReveal>
-            <div style={{ textAlign: "center", marginBottom: 50 }}>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "#6366f1", letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>How It Works</div>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 900, color: "#0f172a" }}>4 simple steps</h2>
-            </div>
-          </ScrollReveal>
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {STEPS.map((s, i) => (
-              <ScrollReveal key={i} delay={i * 0.15} direction={i % 2 === 0 ? "left" : "right"}>
-                <div className="step-card" style={{ display: "flex", gap: 20, alignItems: "center", background: "#f8fafc", borderRadius: 22, padding: 28, border: "1px solid #f1f5f9", transition: "all 0.3s ease" }}>
-                  <div style={{ width: 68, height: 68, borderRadius: 20, flexShrink: 0, background: "linear-gradient(135deg, #2563eb, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>{s.icon}</div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 900, color: "#6366f1", letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>Step {s.num}</div>
-                    <div style={{ fontSize: 19, fontWeight: 900, color: "#0f172a", marginBottom: 4 }}>{s.title}</div>
-                    <div style={{ fontSize: 14, color: "#64748b", lineHeight: 1.7, fontWeight: 500 }}>{s.desc}</div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ background: "linear-gradient(135deg, #0f172a, #1e3a5f)", padding: "90px 20px", color: "white" }}>
-        <div style={{ maxWidth: 800, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 40 }}>
-          <ScrollReveal direction="left">
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "#60a5fa", letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Our Mission</div>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 900, marginBottom: 16 }}>Simplify school administration across Africa</h3>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, fontWeight: 500 }}>Teachers should spend their time teaching, not calculating results. EasyAcad's mission is to digitize result compilation — the most stressful administrative task in schools — starting with Nigerian primary schools.</p>
-            </div>
-          </ScrollReveal>
-          <ScrollReveal direction="right" delay={0.2}>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "#a78bfa", letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Our Vision</div>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 900, marginBottom: 16 }}>Every school, digitally empowered</h3>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, fontWeight: 500 }}>Every school — no matter how small — should have access to professional, accurate, beautifully designed report cards. Where result week takes 30 minutes, not 7 days.</p>
-            </div>
-          </ScrollReveal>
-        </div>
-      </div>
-
-      <div style={{ background: "#f8fafc", padding: "90px 20px" }}>
-        <div style={{ maxWidth: 700, margin: "0 auto" }}>
-          <ScrollReveal>
-            <div style={{ textAlign: "center", marginBottom: 50 }}>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "#6366f1", letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Get In Touch</div>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 900, color: "#0f172a" }}>Contact Us</h2>
-            </div>
-          </ScrollReveal>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20 }}>
-            {[
-              { icon: "📧", label: "Email", value: "hello@geteasyacad.com", sub: "We reply within 24 hours" },
-              { icon: "📞", label: "Phone", value: "0907 909 8659", sub: "Mon-Fri, 8am - 5pm" },
-              { icon: "💬", label: "WhatsApp", value: "0907 909 8659", sub: "Quick support" },
-            ].map((c, i) => (
-              <ScrollReveal key={i} delay={i * 0.15} direction="scale">
-                <div style={{ background: "white", borderRadius: 22, padding: 28, textAlign: "center", border: "1px solid #f1f5f9" }}>
-                  <div style={{ fontSize: 36, marginBottom: 12 }}>{c.icon}</div>
-                  <div style={{ fontSize: 11, fontWeight: 900, color: "#6366f1", letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>{c.label}</div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", marginBottom: 4 }}>{c.value}</div>
-                  <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>{c.sub}</div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ background: "#0f172a", padding: "40px 20px", textAlign: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 12, background: "linear-gradient(135deg, #2563eb, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>📊</div>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 900, color: "white" }}>EasyAcad</span>
-        </div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontWeight: 500 }}>Automated report card generation for Nigerian schools</div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.15)", marginTop: 8 }}>© 2026 EasyAcad. All rights reserved.</div>
       </div>
     </div>
   );
