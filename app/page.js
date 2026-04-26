@@ -53,12 +53,11 @@ export default function HomePage() {
         .price-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(15,40,71,0.15); }
       `}</style>
 
-      {/* NAV */}
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: scrolled ? "rgba(250,247,240,0.95)" : "rgba(250,247,240,0.7)", backdropFilter: "blur(20px)", borderBottom: scrolled ? `1px solid ${GOLD}33` : "1px solid transparent", transition: "all 0.3s ease", padding: "16px 24px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div onClick={() => scrollTo("top")} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: NAVY, border: `2px solid ${GOLD}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: GOLD, fontWeight: 900, fontFamily: "'Playfair Display', serif" }}>EA</div>
-            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 900, color: NAVY }}>EasyAcad</span>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: NAVY, border: `2px solid ${GOLD}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: GOLD, fontWeight: 900, fontFamily: "'Playfair Display', serif" }}>G</div>
+            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 900, color: NAVY }}>Gradora</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
             <span className="nav-link" onClick={() => scrollTo("features")} style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, cursor: "pointer", transition: "color 0.2s" }}>Features</span>
@@ -72,28 +71,20 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* HERO */}
       <section id="top" style={{ minHeight: "100vh", paddingTop: 100, background: `linear-gradient(180deg, ${CREAM} 0%, ${CREAM_WARM} 100%)`, display: "flex", alignItems: "center", justifyContent: "center", padding: "130px 24px 80px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "15%", left: "8%", width: 200, height: 200, borderRadius: "50%", background: `radial-gradient(circle, ${GOLD}22, transparent)`, filter: "blur(40px)" }} />
         <div style={{ position: "absolute", bottom: "10%", right: "8%", width: 250, height: 250, borderRadius: "50%", background: `radial-gradient(circle, ${NAVY}22, transparent)`, filter: "blur(50px)" }} />
-
         <div style={{ maxWidth: 900, textAlign: "center", animation: "fadeUp 0.8s ease-out", position: "relative", zIndex: 1 }}>
           <div style={{ display: "inline-block", padding: "8px 20px", borderRadius: 999, background: "white", border: `1.5px solid ${GOLD}`, fontSize: 12, fontWeight: 800, color: NAVY, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 28 }}>🇳🇬 Built for Nigerian Schools</div>
-
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(38px, 6vw, 68px)", fontWeight: 900, color: NAVY, lineHeight: 1.1, marginBottom: 24, letterSpacing: -1 }}>
             End-of-term results<br />
             <span style={{ color: GOLD, fontStyle: "italic" }}>without the stress.</span>
           </h1>
-
-          <p style={{ fontSize: 18, color: NAVY_LIGHT, lineHeight: 1.7, fontWeight: 500, maxWidth: 620, margin: "0 auto 40px" }}>
-            Give us the scores — we deliver finished report cards, broadsheets, and rankings. Designed for Nigerian primary and secondary schools.
-          </p>
-
+          <p style={{ fontSize: 18, color: NAVY_LIGHT, lineHeight: 1.7, fontWeight: 500, maxWidth: 620, margin: "0 auto 40px" }}>Give us the scores — we deliver finished report cards, broadsheets, and rankings. Designed for Nigerian primary and secondary schools.</p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/pricing" className="btn-primary" style={{ padding: "16px 34px", borderRadius: 12, background: NAVY, color: "white", fontSize: 16, fontWeight: 800, textDecoration: "none", boxShadow: "0 8px 24px rgba(15,40,71,0.25)", transition: "all 0.3s ease", display: "inline-block" }}>Get Started →</Link>
             <Link href="/demo" style={{ padding: "16px 34px", borderRadius: 12, background: "white", border: `2px solid ${NAVY}`, color: NAVY, fontSize: 16, fontWeight: 800, textDecoration: "none", transition: "all 0.3s ease", display: "inline-block" }}>▶ Watch Demo</Link>
           </div>
-
           <div style={{ marginTop: 40, display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999, background: "white", border: `1px solid ${GOLD}44` }}>
             <span style={{ color: GOLD }}>★</span>
             <span style={{ fontSize: 13, color: NAVY, fontWeight: 700 }}>Trusted by Ifelyn Smart Kids Academy, Asaba</span>
@@ -101,7 +92,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FEATURES */}
       <section id="features" style={{ background: "white", padding: "100px 24px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 60 }}>
@@ -121,7 +111,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
       <section id="how" style={{ background: CREAM, padding: "100px 24px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 60 }}>
@@ -143,7 +132,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* PRICING */}
       <section id="pricing" style={{ background: "white", padding: "100px 24px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 60 }}>
@@ -179,22 +167,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CONTACT */}
       <section id="contact" style={{ background: NAVY, padding: "100px 24px", color: "white", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "-20%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, ${GOLD}15, transparent)`, filter: "blur(60px)" }} />
         <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center", position: "relative" }}>
           <div style={{ fontSize: 12, fontWeight: 900, color: GOLD, letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Get In Touch</div>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 44, fontWeight: 900, marginBottom: 16 }}>Ready to start?</h2>
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.75)", marginBottom: 40, fontWeight: 500 }}>Get instant access or talk to us directly.</p>
-
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 40 }}>
-            <Link href="/pricing" style={{ padding: "16px 32px", borderRadius: 12, background: GOLD, color: NAVY, fontSize: 16, fontWeight: 900, textDecoration: "none", transition: "all 0.3s ease" }}>Get Access Now →</Link>
-            <Link href="/demo" style={{ padding: "16px 32px", borderRadius: 12, background: "transparent", border: "2px solid white", color: "white", fontSize: 16, fontWeight: 900, textDecoration: "none", transition: "all 0.3s ease" }}>Watch Demo</Link>
+            <Link href="/pricing" style={{ padding: "16px 32px", borderRadius: 12, background: GOLD, color: NAVY, fontSize: 16, fontWeight: 900, textDecoration: "none" }}>Get Access Now →</Link>
+            <Link href="/demo" style={{ padding: "16px 32px", borderRadius: 12, background: "transparent", border: "2px solid white", color: "white", fontSize: 16, fontWeight: 900, textDecoration: "none" }}>Watch Demo</Link>
           </div>
-
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20 }}>
             {[
-              { icon: "📧", label: "Email", value: "hello@geteasyacad.com" },
+              { icon: "📧", label: "Email", value: "hello@gradora.ng" },
               { icon: "📞", label: "Phone", value: "0907 909 8659" },
               { icon: "💬", label: "WhatsApp", value: "0907 909 8659" },
             ].map((c, i) => (
@@ -208,14 +193,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer style={{ background: "#0A1B33", padding: "36px 24px", textAlign: "center", borderTop: `1px solid ${GOLD}22` }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: NAVY, border: `2px solid ${GOLD}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: GOLD, fontWeight: 900, fontFamily: "'Playfair Display', serif" }}>EA</div>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 900, color: "white" }}>EasyAcad</span>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: NAVY, border: `2px solid ${GOLD}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: GOLD, fontWeight: 900, fontFamily: "'Playfair Display', serif" }}>G</div>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 900, color: "white" }}>Gradora</span>
         </div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Result processing for Nigerian schools</div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginTop: 8 }}>© 2026 EasyAcad. All rights reserved.</div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginTop: 8 }}>© 2026 Gradora. All rights reserved.</div>
       </footer>
     </div>
   );

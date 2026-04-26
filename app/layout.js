@@ -1,17 +1,15 @@
 import "./globals.css";
-import { ThemeProvider } from "@/lib/ThemeContext";
 
 export const metadata = {
-  title: "School Result System",
-  description: "Automated result compilation for primary schools",
+  title: "Gradora — Result Processing Made Effortless",
+  description: "Automated school result processing for Nigerian primary and secondary schools. Report cards, broadsheets, and rankings — done for you.",
+  keywords: "school results, report cards, Nigerian schools, result processing, broadsheet, gradora",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

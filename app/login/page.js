@@ -60,26 +60,16 @@ function LoginPageContent() {
   useEffect(() => {
     setTimeout(() => setLoaded(true), 100);
     const urlCode = searchParams.get("code");
-    if (urlCode) {
-      setAccessCode(urlCode.toUpperCase());
-      setMode("register");
-      setStep(0);
-    }
+    if (urlCode) { setAccessCode(urlCode.toUpperCase()); setMode("register"); setStep(0); }
   }, [searchParams]);
 
   const handleHeroClick = (e) => {
     if (!heroRef.current?.contains(e.target)) return;
     if (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON" || e.target.tagName === "A") return;
     const rect = heroRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = e.clientX - rect.left; const y = e.clientY - rect.top;
     const emojis = ["⭐", "✨", "💫", "🌟", "📚", "✏️", "🎓", "💡"];
-    const newPops = Array.from({ length: 6 }, (_, i) => ({
-      id: popId.current++, x, y,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
-      angle: (i * 60) + Math.random() * 30,
-      distance: 40 + Math.random() * 60,
-    }));
+    const newPops = Array.from({ length: 6 }, (_, i) => ({ id: popId.current++, x, y, emoji: emojis[Math.floor(Math.random() * emojis.length)], angle: (i * 60) + Math.random() * 30, distance: 40 + Math.random() * 60 }));
     setPops(prev => [...prev, ...newPops]);
     setTimeout(() => setPops(prev => prev.filter(p => !newPops.includes(p))), 1000);
   };
@@ -94,13 +84,11 @@ function LoginPageContent() {
     if (!email || !password) { setError("Please enter email and password."); return; }
     setLoading(true); setError("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { setError(error.message); setLoading(false); }
-    else { window.location.href = "/dashboard"; }
+    if (error) { setError(error.message); setLoading(false); } else { window.location.href = "/dashboard"; }
   };
 
   const handleLogoSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]; if (!file) return;
     if (!file.type.startsWith("image/")) { setError("Please select an image file."); return; }
     if (file.size > 2 * 1024 * 1024) { setError("Logo must be under 2MB."); return; }
     setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); setError("");
@@ -110,27 +98,17 @@ function LoginPageContent() {
     if (!accessCode.trim()) { setError("Please enter your access code."); return; }
     setLoading(true); setError("");
     try {
-      const { data, error: fetchError } = await supabase
-        .from("access_codes")
-        .select("*")
-        .eq("code", accessCode.trim().toUpperCase())
-        .single();
+      const { data, error: fetchError } = await supabase.from("access_codes").select("*").eq("code", accessCode.trim().toUpperCase()).single();
       if (fetchError || !data) { setError("Invalid access code. Please check and try again."); setLoading(false); return; }
       if (data.used) { setError("This access code has already been used."); setLoading(false); return; }
       if (new Date(data.expires_at) < new Date()) { setError("This access code has expired. Contact us for a new one."); setLoading(false); return; }
-      setValidatedCode(data);
-      setRegistrationType("code");
-      setStep(1);
-      setError("");
+      setValidatedCode(data); setRegistrationType("code"); setStep(1); setError("");
     } catch (err) { setError("Something went wrong. Please try again."); }
     setLoading(false);
   };
 
   const startFreeTrial = () => {
-    setRegistrationType("trial");
-    setValidatedCode({ plan: "trial", max_classes: 1, max_students_per_class: 15, can_print: false });
-    setStep(1);
-    setError("");
+    setRegistrationType("trial"); setValidatedCode({ plan: "trial", max_classes: 1, max_students_per_class: 15, can_print: false }); setStep(1); setError("");
   };
 
   const handleRegister = async () => {
@@ -144,33 +122,14 @@ function LoginPageContent() {
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
       if (authError) { setError("Registration error: " + authError.message); setLoading(false); return; }
-      const userId = authData.user?.id;
-      if (!userId) { setError("Registration failed."); setLoading(false); return; }
+      const userId = authData.user?.id; if (!userId) { setError("Registration failed."); setLoading(false); return; }
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) { setError("Account created but sign in failed: " + signInError.message); setMode("login"); setLoading(false); return; }
-      const plan = validatedCode?.plan || "trial";
-      const maxClasses = validatedCode?.max_classes ?? 1;
-      const maxStudents = validatedCode?.max_students_per_class ?? 15;
-      const canPrint = validatedCode?.can_print ?? false;
-      const { data: schoolData, error: schoolError } = await supabase.from("schools").insert({
-        name: schoolName.trim(), address: schoolAddress.trim() || null, motto: schoolMotto.trim() || null, theme: "royal",
-        plan, max_classes: maxClasses, max_students_per_class: maxStudents, can_print: canPrint,
-        access_code_used: registrationType === "code" ? accessCode.trim().toUpperCase() : null,
-        trial_expires_at: plan === "trial" ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null,
-      }).select().single();
+      const plan = validatedCode?.plan || "trial"; const maxClasses = validatedCode?.max_classes ?? 1; const maxStudents = validatedCode?.max_students_per_class ?? 15; const canPrint = validatedCode?.can_print ?? false;
+      const { data: schoolData, error: schoolError } = await supabase.from("schools").insert({ name: schoolName.trim(), address: schoolAddress.trim() || null, motto: schoolMotto.trim() || null, theme: "royal", plan, max_classes: maxClasses, max_students_per_class: maxStudents, can_print: canPrint, access_code_used: registrationType === "code" ? accessCode.trim().toUpperCase() : null, trial_expires_at: plan === "trial" ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null }).select().single();
       if (schoolError || !schoolData) { setError("School creation failed: " + (schoolError?.message || "Unknown")); setLoading(false); return; }
-      if (registrationType === "code" && validatedCode?.id) {
-        await supabase.from("access_codes").update({ used: true, used_by: schoolData.id, used_at: new Date().toISOString() }).eq("id", validatedCode.id);
-      }
-      if (logoFile) {
-        const ext = logoFile.name.split(".").pop();
-        const fname = `${schoolData.id}-logo.${ext}`;
-        const { error: upErr } = await supabase.storage.from("logos").upload(fname, logoFile, { upsert: true });
-        if (!upErr) {
-          const { data: urlData } = supabase.storage.from("logos").getPublicUrl(fname);
-          await supabase.from("schools").update({ logo_url: urlData.publicUrl + "?t=" + Date.now() }).eq("id", schoolData.id);
-        }
-      }
+      if (registrationType === "code" && validatedCode?.id) { await supabase.from("access_codes").update({ used: true, used_by: schoolData.id, used_at: new Date().toISOString() }).eq("id", validatedCode.id); }
+      if (logoFile) { const ext = logoFile.name.split(".").pop(); const fname = `${schoolData.id}-logo.${ext}`; const { error: upErr } = await supabase.storage.from("logos").upload(fname, logoFile, { upsert: true }); if (!upErr) { const { data: urlData } = supabase.storage.from("logos").getPublicUrl(fname); await supabase.from("schools").update({ logo_url: urlData.publicUrl + "?t=" + Date.now() }).eq("id", schoolData.id); } }
       const userRole = plan === "super_admin" ? "super_admin" : "admin";
       const { error: userError } = await supabase.from("users").insert({ id: userId, school_id: schoolData.id, full_name: fullName.trim(), role: userRole });
       if (userError) { setError("Profile creation failed: " + userError.message); setLoading(false); return; }
@@ -182,30 +141,19 @@ function LoginPageContent() {
     if (!email) { setError("Enter your email first."); return; }
     setLoading(true); setError("");
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/login" });
-    if (error) setError(error.message);
-    else setSuccess("Password reset link sent to your email.");
-    setLoading(false);
+    if (error) setError(error.message); else setSuccess("Password reset link sent to your email."); setLoading(false);
   };
 
-  const nextStep = () => {
-    if (step === 1 && !schoolName.trim()) { setError("Please enter your school name."); return; }
-    setError(""); setStep(step + 1);
-  };
+  const nextStep = () => { if (step === 1 && !schoolName.trim()) { setError("Please enter your school name."); return; } setError(""); setStep(step + 1); };
 
   const iStyle = { width: "100%", padding: "16px 18px", borderRadius: 16, border: "2px solid #e2e8f0", background: "white", fontSize: 15, fontWeight: 600, outline: "none", fontFamily: "'DM Sans', sans-serif", transition: "all 0.3s ease", boxSizing: "border-box" };
   const iFocus = (e) => { e.target.style.borderColor = "#6366f1"; e.target.style.boxShadow = "0 0 0 4px rgba(99,102,241,0.1)"; };
   const iBlur = (e) => { e.target.style.borderColor = "#e2e8f0"; e.target.style.boxShadow = "none"; };
   const labelStyle = { display: "block", fontSize: 11, fontWeight: 900, color: "#64748b", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 };
-  const btnPrimary = { width: "100%", padding: 18, borderRadius: 18, border: "none", background: "linear-gradient(135deg, #1e3a5f, #2563eb, #7c3aed)", backgroundSize: "200% 200%", color: "white", fontSize: 16, fontWeight: 900, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 6px 24px rgba(37,99,235,0.35)", transition: "all 0.3s ease", letterSpacing: 0.5 };
+  const btnPrimary = { width: "100%", padding: 18, borderRadius: 18, border: "none", background: "linear-gradient(135deg, #0F2847, #2563eb, #7c3aed)", backgroundSize: "200% 200%", color: "white", fontSize: 16, fontWeight: 900, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 6px 24px rgba(37,99,235,0.35)", transition: "all 0.3s ease", letterSpacing: 0.5 };
 
   const planBadge = validatedCode ? (
-    <div style={{
-      display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 999, marginBottom: 16,
-      background: validatedCode.plan === "trial" ? "#fef3c7" : validatedCode.plan === "super_admin" ? "#dbeafe" : "#dcfce7",
-      border: `1px solid ${validatedCode.plan === "trial" ? "#fbbf24" : validatedCode.plan === "super_admin" ? "#3b82f6" : "#16a34a"}`,
-      fontSize: 11, fontWeight: 800, letterSpacing: 1,
-      color: validatedCode.plan === "trial" ? "#92400e" : validatedCode.plan === "super_admin" ? "#1e40af" : "#166534",
-    }}>
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 999, marginBottom: 16, background: validatedCode.plan === "trial" ? "#fef3c7" : validatedCode.plan === "super_admin" ? "#dbeafe" : "#dcfce7", border: `1px solid ${validatedCode.plan === "trial" ? "#fbbf24" : validatedCode.plan === "super_admin" ? "#3b82f6" : "#16a34a"}`, fontSize: 11, fontWeight: 800, letterSpacing: 1, color: validatedCode.plan === "trial" ? "#92400e" : validatedCode.plan === "super_admin" ? "#1e40af" : "#166534" }}>
       {validatedCode.plan === "trial" ? "🆓 FREE TRIAL" : validatedCode.plan === "super_admin" ? "👑 SUPER ADMIN" : validatedCode.plan === "premium" ? "⭐ PREMIUM" : validatedCode.plan === "assisted" ? "🤝 ASSISTED" : "✅ BASIC"} PLAN
     </div>
   ) : null;
@@ -240,8 +188,8 @@ function LoginPageContent() {
 
         <div style={{ width: "100%", maxWidth: 440, position: "relative", zIndex: 10, opacity: loaded ? 1 : 0, animation: loaded ? "slideUp 0.8s ease-out" : "none" }}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <div style={{ width: 80, height: 80, borderRadius: 24, background: "linear-gradient(135deg, #2563eb, #7c3aed, #2563eb)", backgroundSize: "200% 200%", animation: "bgShift 4s ease infinite", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 36, boxShadow: "0 8px 40px rgba(99,102,241,0.4)", transform: loaded ? "scale(1)" : "scale(0)", transition: "all 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.2s" }}><span style={{ animation: "wave 2s ease-in-out infinite" }}>📊</span></div>
-            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 38, fontWeight: 900, color: "white", letterSpacing: -1, lineHeight: 1 }}>EasyAcad</h1>
+            <div style={{ width: 80, height: 80, borderRadius: 24, background: "linear-gradient(135deg, #0F2847, #2563eb, #0F2847)", backgroundSize: "200% 200%", animation: "bgShift 4s ease infinite", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 30, fontWeight: 900, color: "#D4A017", fontFamily: "'Playfair Display', serif", boxShadow: "0 8px 40px rgba(15,40,71,0.4)", transform: loaded ? "scale(1)" : "scale(0)", transition: "all 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.2s" }}>G</div>
+            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 38, fontWeight: 900, color: "white", letterSpacing: -1, lineHeight: 1 }}>Gradora</h1>
             <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: 4, textTransform: "uppercase", marginTop: 10, background: "linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.8), rgba(255,255,255,0.3))", backgroundSize: "200% auto", animation: "shimmer 3s linear infinite", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Result Processing Made Effortless</p>
           </div>
 
@@ -269,8 +217,8 @@ function LoginPageContent() {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 24 }}>
                   {[{ n: 0, i: "🔑" }, { n: 1, i: "🏫" }, { n: 2, i: "🎨" }, { n: 3, i: "👤" }].map((s, idx) => (
                     <div key={s.n} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, transition: "all 0.5s cubic-bezier(0.34,1.56,0.64,1)", background: step >= s.n ? "linear-gradient(135deg, #2563eb, #7c3aed)" : "#f1f5f9", color: step >= s.n ? "white" : "#94a3b8", boxShadow: step >= s.n ? "0 4px 16px rgba(99,102,241,0.3)" : "none" }}>{s.i}</div>
-                      {idx < 3 && <div style={{ width: 18, height: 3, borderRadius: 2, background: step > s.n ? "linear-gradient(90deg, #2563eb, #7c3aed)" : "#e2e8f0", transition: "all 0.5s" }} />}
+                      <div style={{ width: 40, height: 40, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, transition: "all 0.5s cubic-bezier(0.34,1.56,0.64,1)", background: step >= s.n ? "linear-gradient(135deg, #0F2847, #2563eb)" : "#f1f5f9", color: step >= s.n ? "white" : "#94a3b8", boxShadow: step >= s.n ? "0 4px 16px rgba(15,40,71,0.3)" : "none" }}>{s.i}</div>
+                      {idx < 3 && <div style={{ width: 18, height: 3, borderRadius: 2, background: step > s.n ? "linear-gradient(90deg, #0F2847, #2563eb)" : "#e2e8f0", transition: "all 0.5s" }} />}
                     </div>
                   ))}
                 </div>
@@ -282,7 +230,7 @@ function LoginPageContent() {
                       <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>Enter an access code or try us for free</div>
                     </div>
                     <div style={{ background: "#f8fafc", borderRadius: 16, padding: 20, border: "1px solid #e2e8f0" }}>
-                      <div style={{ fontSize: 12, fontWeight: 900, color: "#6366f1", letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>🔐 I have an access code</div>
+                      <div style={{ fontSize: 12, fontWeight: 900, color: "#0F2847", letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>🔐 I have an access code</div>
                       <input type="text" value={accessCode} onChange={e => setAccessCode(e.target.value.toUpperCase())} onKeyDown={e => e.key === "Enter" && validateAccessCode()} style={{ ...iStyle, textAlign: "center", letterSpacing: 4, fontSize: 18, fontWeight: 900, textTransform: "uppercase" }} onFocus={iFocus} onBlur={iBlur} placeholder="ENTER CODE" maxLength={10} />
                       <button onClick={validateAccessCode} disabled={loading} style={{ ...btnPrimary, marginTop: 12, opacity: loading ? 0.6 : 1 }}>{loading ? "Validating..." : "Validate Code →"}</button>
                     </div>
@@ -291,12 +239,12 @@ function LoginPageContent() {
                       <span style={{ fontSize: 12, fontWeight: 800, color: "#94a3b8" }}>OR</span>
                       <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
                     </div>
-                    <button onClick={startFreeTrial} style={{ width: "100%", padding: 18, borderRadius: 18, border: "2px solid #e2e8f0", background: "white", color: "#0f172a", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", transition: "all 0.3s ease" }}>
+                    <button onClick={startFreeTrial} style={{ width: "100%", padding: 18, borderRadius: 18, border: "2px solid #e2e8f0", background: "white", color: "#0f172a", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
                       🆓 Start Free Trial
                       <div style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8", marginTop: 4 }}>1 class • 15 students • Preview only (no printing)</div>
                     </button>
                     <div style={{ textAlign: "center", fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>
-                      Need an access code? <Link href="/pricing" style={{ color: "#6366f1", fontWeight: 800, textDecoration: "none" }}>Purchase a plan here</Link> or call <strong style={{ color: "#6366f1" }}>0907 909 8659</strong>
+                      Need an access code? <Link href="/pricing" style={{ color: "#0F2847", fontWeight: 800, textDecoration: "none" }}>Purchase a plan here</Link> or call <strong style={{ color: "#0F2847" }}>0907 909 8659</strong>
                     </div>
                   </div>
                 )}
@@ -325,7 +273,7 @@ function LoginPageContent() {
                     {logoPreview && <button onClick={() => { setLogoFile(null); setLogoPreview(null); }} style={{ fontSize: 12, color: "#ef4444", fontWeight: 700, background: "none", border: "none", cursor: "pointer" }}>Remove logo</button>}
                     <div style={{ display: "flex", gap: 12, width: "100%" }}>
                       <button onClick={() => { setError(""); setStep(1); }} style={{ flex: 1, padding: 16, borderRadius: 16, border: "2px solid #e2e8f0", background: "white", color: "#64748b", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>← Back</button>
-                      <button onClick={nextStep} style={{ flex: 1, padding: 16, borderRadius: 16, border: "none", background: "linear-gradient(135deg, #2563eb, #7c3aed)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{logoFile ? "Continue →" : "Skip →"}</button>
+                      <button onClick={nextStep} style={{ flex: 1, padding: 16, borderRadius: 16, border: "none", background: "linear-gradient(135deg, #0F2847, #2563eb)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{logoFile ? "Continue →" : "Skip →"}</button>
                     </div>
                   </div>
                 )}
@@ -334,17 +282,11 @@ function LoginPageContent() {
                   <div style={{ display: "flex", flexDirection: "column", gap: 14, animation: "slideUp 0.4s ease-out" }}>
                     <div style={{ textAlign: "center" }}>{planBadge}</div>
                     <div><label style={labelStyle}>Full Name *</label><input type="text" value={fullName} onChange={e => setFullName(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Mrs. Okonkwo" /></div>
-                    {registrationType === "trial" && (
-                      <div><label style={labelStyle}>Phone Number *</label><input type="tel" value={phone} onChange={e => setPhone(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. 0907 909 8659" /></div>
-                    )}
+                    {registrationType === "trial" && (<div><label style={labelStyle}>Phone Number *</label><input type="tel" value={phone} onChange={e => setPhone(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. 0907 909 8659" /></div>)}
                     <div><label style={labelStyle}>Email *</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="admin@school.com" /></div>
                     <div><label style={labelStyle}>Password *</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="At least 6 characters" /></div>
                     <div><label style={labelStyle}>Confirm Password *</label><input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleRegister()} style={iStyle} onFocus={iFocus} onBlur={iBlur} placeholder="••••••••" /></div>
-                    {registrationType === "trial" && (
-                      <div style={{ background: "#fef3c7", border: "1px solid #fbbf24", borderRadius: 14, padding: "10px 14px", fontSize: 11, color: "#92400e", fontWeight: 600, lineHeight: 1.5 }}>
-                        ⚠️ Free trial: 1 class, 15 students max, no printing. Upgrade anytime by contacting us.
-                      </div>
-                    )}
+                    {registrationType === "trial" && (<div style={{ background: "#fef3c7", border: "1px solid #fbbf24", borderRadius: 14, padding: "10px 14px", fontSize: 11, color: "#92400e", fontWeight: 600, lineHeight: 1.5 }}>⚠️ Free trial: 1 class, 15 students max, no printing. Upgrade anytime by contacting us.</div>)}
                     <div style={{ display: "flex", gap: 12 }}>
                       <button onClick={() => { setError(""); setStep(2); }} style={{ padding: "16px 22px", borderRadius: 16, border: "2px solid #e2e8f0", background: "white", color: "#64748b", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>←</button>
                       <button onClick={handleRegister} disabled={loading} style={{ ...btnPrimary, flex: 1, opacity: loading ? 0.6 : 1 }}>{loading ? "Creating school..." : "Create School 🚀"}</button>
