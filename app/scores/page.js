@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getGrade } from "@/lib/helpers";
@@ -18,17 +18,33 @@ function ScoresContent() {
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
   const [activeTerm, setActiveTerm] = useState(null);
   const [scores, setScores] = useState({});
-  const [originalScores, setOriginalScores] = useState({}); // Track what was loaded from DB
+  const [originalScores, setOriginalScores] = useState({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [autoSaveToast, setAutoSaveToast] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // School default score structure
+  // Ref to track current subject for auto-save (avoids stale closure issues)
+  const currentSubjectRef = useRef(selectedSubjectId);
+  const scoresRef = useRef(scores);
+  const originalScoresRef = useRef(originalScores);
+  const studentsRef = useRef(students);
+  const activeTermRef = useRef(activeTerm);
+  const subjectsRef = useRef(subjects);
+
+  // Keep refs in sync
+  useEffect(() => { currentSubjectRef.current = selectedSubjectId; }, [selectedSubjectId]);
+  useEffect(() => { scoresRef.current = scores; }, [scores]);
+  useEffect(() => { originalScoresRef.current = originalScores; }, [originalScores]);
+  useEffect(() => { studentsRef.current = students; }, [students]);
+  useEffect(() => { activeTermRef.current = activeTerm; }, [activeTerm]);
+  useEffect(() => { subjectsRef.current = subjects; }, [subjects]);
+
   const schoolTest1Max = school?.test1_max || 20;
   const schoolTest2Max = school?.test2_max || 20;
   const schoolExamMax = school?.exam_max || 60;
 
-  // Get max values for the currently selected subject (per-subject override or school default)
   const getSubjectMaxValues = (subjectId) => {
     const subject = subjects.find(s => s.id === subjectId);
     return {
@@ -101,7 +117,6 @@ function ScoresContent() {
         };
       });
       setScores(scoreMap);
-      // Store a deep copy of original scores to compare later
       setOriginalScores(JSON.parse(JSON.stringify(scoreMap)));
     } else {
       setScores({});
@@ -111,14 +126,20 @@ function ScoresContent() {
     if (subjectData?.length) {
       setSelectedSubjectId(subjectData[0].id);
     }
+    setHasUnsavedChanges(false);
   };
 
   const handleClassChange = async (classId) => {
+    // Auto-save current subject before switching class
+    if (hasUnsavedChanges && selectedSubjectId) {
+      await saveSubjectScores(selectedSubjectId);
+    }
     setSelectedClassId(classId);
     setScores({});
     setOriginalScores({});
     setStudents([]);
     setSubjects([]);
+    setHasUnsavedChanges(false);
     if (classId) {
       await loadClassData(classId, activeTerm?.id);
     }
@@ -137,6 +158,7 @@ function ScoresContent() {
       },
     }));
     setSaved(false);
+    setHasUnsavedChanges(true);
   }, [selectedSubjectId, currentMax]);
 
   const getStudentScore = (studentId) => {
@@ -153,30 +175,33 @@ function ScoresContent() {
     return t1 + t2 + ex;
   };
 
-  const handleSave = async () => {
-    if (!activeTerm || !selectedSubjectId) return;
-    setSaving(true);
+  // Core save function — can save any subject's scores
+  const saveSubjectScores = async (subjectId) => {
+    const term = activeTermRef.current;
+    const currentStudents = studentsRef.current;
+    const currentScores = scoresRef.current;
+    const currentOriginal = originalScoresRef.current;
+
+    if (!term || !subjectId || !currentStudents.length) return false;
 
     const toUpsert = [];
     const toDelete = [];
 
-    for (const student of students) {
-      const key = `${student.id}-${selectedSubjectId}`;
-      const current = scores[key];
-      const original = originalScores[key];
+    for (const student of currentStudents) {
+      const key = `${student.id}-${subjectId}`;
+      const current = currentScores[key];
+      const original = currentOriginal[key];
 
       const isEmpty = !current || (current.test1 === "" && current.test2 === "" && current.exam === "");
       const hadData = original && (original.test1 !== "" || original.test2 !== "" || original.exam !== "");
 
       if (isEmpty && hadData && original.id) {
-        // Student had scores before but now cleared — delete from database
         toDelete.push(original.id);
       } else if (!isEmpty) {
-        // Student has scores — upsert
         toUpsert.push({
           student_id: student.id,
-          subject_id: selectedSubjectId,
-          term_id: activeTerm.id,
+          subject_id: subjectId,
+          term_id: term.id,
           test1: current.test1 === "" ? 0 : current.test1,
           test2: current.test2 === "" ? 0 : current.test2,
           exam: current.exam === "" ? 0 : current.exam,
@@ -184,35 +209,75 @@ function ScoresContent() {
       }
     }
 
+    // Skip save if nothing changed
+    if (toUpsert.length === 0 && toDelete.length === 0) return true;
+
     let hasError = false;
 
-    // Delete cleared scores
     if (toDelete.length > 0) {
-      const { error } = await supabase
-        .from("scores")
-        .delete()
-        .in("id", toDelete);
-      if (error) {
-        console.error("Delete error:", error);
-        hasError = true;
-      }
+      const { error } = await supabase.from("scores").delete().in("id", toDelete);
+      if (error) { console.error("Delete error:", error); hasError = true; }
     }
 
-    // Upsert remaining scores
     if (toUpsert.length > 0) {
-      const { error } = await supabase
-        .from("scores")
-        .upsert(toUpsert, { onConflict: "student_id,subject_id,term_id" });
-      if (error) {
-        console.error("Upsert error:", error);
-        hasError = true;
+      const { error } = await supabase.from("scores").upsert(toUpsert, { onConflict: "student_id,subject_id,term_id" });
+      if (error) { console.error("Upsert error:", error); hasError = true; }
+    }
+
+    if (!hasError) {
+      // Update originalScores for the saved subject so we know it's clean
+      const updatedOriginal = { ...originalScoresRef.current };
+      for (const student of currentStudents) {
+        const key = `${student.id}-${subjectId}`;
+        if (currentScores[key]) {
+          updatedOriginal[key] = JSON.parse(JSON.stringify(currentScores[key]));
+        } else {
+          delete updatedOriginal[key];
+        }
+      }
+      setOriginalScores(updatedOriginal);
+      setHasUnsavedChanges(false);
+    }
+
+    return !hasError;
+  };
+
+  // Handle switching subjects — auto-save first
+  const handleSubjectSwitch = async (newSubjectId) => {
+    if (newSubjectId === selectedSubjectId) return;
+
+    // Auto-save current subject if there are unsaved changes
+    if (hasUnsavedChanges && selectedSubjectId) {
+      setSaving(true);
+      const success = await saveSubjectScores(selectedSubjectId);
+      setSaving(false);
+
+      if (success) {
+        // Show auto-save toast
+        setAutoSaveToast(true);
+        setTimeout(() => setAutoSaveToast(false), 2000);
+      } else {
+        // Save failed — ask user if they want to switch anyway
+        const proceed = confirm("Failed to save scores for current subject. Switch anyway? Unsaved changes will be lost.");
+        if (!proceed) return;
       }
     }
 
-    if (hasError) {
+    setSelectedSubjectId(newSubjectId);
+    setHasUnsavedChanges(false);
+  };
+
+  // Manual save button handler
+  const handleSave = async () => {
+    if (!activeTerm || !selectedSubjectId) return;
+    setSaving(true);
+
+    const success = await saveSubjectScores(selectedSubjectId);
+
+    if (!success) {
       alert("Error saving some scores. Please try again.");
     } else {
-      // Reload scores from DB to confirm what was saved
+      // Reload all scores to confirm
       await reloadScoresForSubject();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -221,7 +286,6 @@ function ScoresContent() {
     setSaving(false);
   };
 
-  // Reload scores from database after saving to confirm state
   const reloadScoresForSubject = async () => {
     if (!activeTerm || !students.length) return;
 
@@ -243,6 +307,7 @@ function ScoresContent() {
     });
     setScores(scoreMap);
     setOriginalScores(JSON.parse(JSON.stringify(scoreMap)));
+    setHasUnsavedChanges(false);
   };
 
   const getSubjectCompletion = (subjectId) => {
@@ -255,7 +320,6 @@ function ScoresContent() {
     return { filled, total: students.length, complete: filled === students.length && filled > 0 };
   };
 
-  // Check if current subject has custom structure
   const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
   const hasCustomStructure = selectedSubject && (selectedSubject.test1_max || selectedSubject.test2_max || selectedSubject.exam_max);
 
@@ -270,11 +334,49 @@ function ScoresContent() {
 
   return (
     <div className="min-h-screen bg-sand-100">
+      {/* Auto-save toast */}
+      {autoSaveToast && (
+        <div style={{
+          position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)",
+          background: "#16a34a", color: "white", padding: "10px 24px", borderRadius: 12,
+          fontSize: 13, fontWeight: 700, zIndex: 1000, boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+          animation: "fadeInOut 2s ease-in-out",
+        }}>
+          ✓ Scores auto-saved
+        </div>
+      )}
+
+      {/* Unsaved changes indicator */}
+      {hasUnsavedChanges && (
+        <div style={{
+          position: "fixed", top: 20, right: 20,
+          background: "#f59e0b", color: "white", padding: "6px 14px", borderRadius: 8,
+          fontSize: 11, fontWeight: 700, zIndex: 999,
+        }}>
+          ● Unsaved changes
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+          15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+          85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+          100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        }
+      `}</style>
+
       {/* Header */}
       <div style={{ background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)` }}
         className="text-white px-5 pt-4 pb-5">
         <div className="flex items-center gap-3 mb-3">
-          <button onClick={() => router.push("/dashboard")} className="text-white/60 hover:text-white text-lg">←</button>
+          <button onClick={async () => {
+            // Auto-save before leaving the page
+            if (hasUnsavedChanges && selectedSubjectId) {
+              await saveSubjectScores(selectedSubjectId);
+            }
+            router.push("/dashboard");
+          }} className="text-white/60 hover:text-white text-lg">←</button>
           <div>
             <h1 className="text-lg font-bold">Enter Scores</h1>
             <p className="text-xs text-white/60">
@@ -298,16 +400,16 @@ function ScoresContent() {
 
       {selectedClassId && subjects.length > 0 && (
         <div className="px-4 py-4">
-          {/* Subject pills */}
+          {/* Subject pills — now with auto-save on switch */}
           <div className="mb-4">
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Subject</div>
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Subject {hasUnsavedChanges && <span className="text-amber-500">(unsaved changes)</span>}</div>
             <div className="flex gap-2 flex-wrap">
               {subjects.map(subject => {
                 const { filled, total, complete } = getSubjectCompletion(subject.id);
                 const isSelected = selectedSubjectId === subject.id;
                 const hasCustom = subject.test1_max || subject.test2_max || subject.exam_max;
                 return (
-                  <button key={subject.id} onClick={() => setSelectedSubjectId(subject.id)}
+                  <button key={subject.id} onClick={() => handleSubjectSwitch(subject.id)}
                     className="px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-all"
                     style={{
                       background: isSelected ? theme.primary : complete ? theme.lightest : "white",
@@ -399,12 +501,17 @@ function ScoresContent() {
             </div>
           )}
 
-          {/* Save Button */}
+          {/* Save Button — still available as manual backup */}
           <button onClick={handleSave} disabled={saving}
             className="w-full mt-4 py-3.5 rounded-2xl font-bold text-sm text-white transition-all disabled:opacity-50"
-            style={{ background: saved ? theme.accent : theme.primary }}>
-            {saving ? "Saving..." : saved ? "✓ Scores Saved!" : "Save Scores"}
+            style={{ background: saved ? theme.accent : hasUnsavedChanges ? theme.primary : theme.light }}>
+            {saving ? "Saving..." : saved ? "✓ Scores Saved!" : hasUnsavedChanges ? "Save Scores" : "All Saved ✓"}
           </button>
+
+          {/* Auto-save hint */}
+          <div className="text-center mt-2 text-[10px] text-gray-400">
+            Scores auto-save when you switch subjects
+          </div>
         </div>
       )}
 
