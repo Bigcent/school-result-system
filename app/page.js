@@ -18,10 +18,28 @@ const STEPS = [
   { num: "04", icon: "📄", title: "Print Report Cards", desc: "Rankings, remarks, attendance — ready to distribute to parents." },
 ];
 
-const PRICING = [
-  { name: "Basic", price: "₦500", period: "per student / term", desc: "Self-service platform", features: ["Full platform access", "Generate report cards", "Print broadsheets", "Online access"], highlight: false },
-  { name: "Assisted", price: "₦1,000", period: "per student / term", desc: "We help format & review", features: ["Everything in Basic", "We format your scores", "We review for errors", "Ready-to-print delivery"], highlight: true },
-  { name: "Premium", price: "₦2,000", period: "per student / term", desc: "Fully done-for-you", features: ["Everything in Assisted", "We process everything", "Printed & delivered", "Priority support"], highlight: false },
+const PLANS = [
+  {
+    name: "Self-Service",
+    desc: "Your teachers use the platform directly",
+    features: ["Full platform access", "Generate report cards", "Print broadsheets & rankings", "Custom school branding", "Online access anytime"],
+    highlight: false,
+    ideal: "Schools with IT-savvy staff"
+  },
+  {
+    name: "Assisted",
+    desc: "Send us the scores — we handle the rest",
+    features: ["Everything in Self-Service", "We enter & format your scores", "We review for errors", "Ready-to-print delivery", "Dedicated support"],
+    highlight: true,
+    ideal: "Schools that want help"
+  },
+  {
+    name: "Premium",
+    desc: "Fully done-for-you service",
+    features: ["Everything in Assisted", "We process everything", "Professional printing", "Physical delivery to school", "Priority support"],
+    highlight: false,
+    ideal: "Schools that want zero effort"
+  },
 ];
 
 const NAVY = "#0F2847";
@@ -29,6 +47,7 @@ const NAVY_LIGHT = "#1E3A5F";
 const GOLD = "#D4A017";
 const CREAM = "#FAF7F0";
 const CREAM_WARM = "#F5EFDF";
+const WHATSAPP_LINK = "https://wa.me/2349079098659?text=Hello%20Gradora%2C%20I%27m%20interested%20in%20your%20school%20result%20processing%20service.%20Please%20share%20more%20details.";
 
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
@@ -50,7 +69,7 @@ export default function HomePage() {
         .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(212,160,23,0.4); }
         .nav-link:hover { color: ${GOLD}; }
         .feat-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(15,40,71,0.12); border-color: ${GOLD} !important; }
-        .price-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(15,40,71,0.15); }
+        .plan-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(15,40,71,0.15); }
       `}</style>
 
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: scrolled ? "rgba(250,247,240,0.95)" : "rgba(250,247,240,0.7)", backdropFilter: "blur(20px)", borderBottom: scrolled ? `1px solid ${GOLD}33` : "1px solid transparent", transition: "all 0.3s ease", padding: "16px 24px" }}>
@@ -62,11 +81,11 @@ export default function HomePage() {
           <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
             <span className="nav-link" onClick={() => scrollTo("features")} style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, cursor: "pointer", transition: "color 0.2s" }}>Features</span>
             <span className="nav-link" onClick={() => scrollTo("how")} style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, cursor: "pointer", transition: "color 0.2s" }}>How It Works</span>
-            <span className="nav-link" onClick={() => scrollTo("pricing")} style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, cursor: "pointer", transition: "color 0.2s" }}>Pricing</span>
+            <span className="nav-link" onClick={() => scrollTo("plans")} style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, cursor: "pointer", transition: "color 0.2s" }}>Plans</span>
             <Link href="/demo" className="nav-link" style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, textDecoration: "none", transition: "color 0.2s" }}>Demo</Link>
             <span className="nav-link" onClick={() => scrollTo("contact")} style={{ fontSize: 14, fontWeight: 700, color: NAVY_LIGHT, cursor: "pointer", transition: "color 0.2s" }}>Contact</span>
             <Link href="/login" style={{ fontSize: 14, fontWeight: 700, color: NAVY, textDecoration: "none" }}>Sign In</Link>
-            <Link href="/pricing" className="btn-gold" style={{ padding: "10px 20px", borderRadius: 10, background: GOLD, color: NAVY, fontSize: 14, fontWeight: 900, textDecoration: "none", transition: "all 0.3s ease", display: "inline-block", border: `2px solid ${GOLD}` }}>Get Started</Link>
+            <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="btn-gold" style={{ padding: "10px 20px", borderRadius: 10, background: GOLD, color: NAVY, fontSize: 14, fontWeight: 900, textDecoration: "none", transition: "all 0.3s ease", display: "inline-block", border: `2px solid ${GOLD}` }}>Contact Us</a>
           </div>
         </div>
       </nav>
@@ -82,7 +101,7 @@ export default function HomePage() {
           </h1>
           <p style={{ fontSize: 18, color: NAVY_LIGHT, lineHeight: 1.7, fontWeight: 500, maxWidth: 620, margin: "0 auto 40px" }}>Give us the scores — we deliver finished report cards, broadsheets, and rankings. Designed for Nigerian primary and secondary schools.</p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-            <Link href="/pricing" className="btn-primary" style={{ padding: "16px 34px", borderRadius: 12, background: NAVY, color: "white", fontSize: 16, fontWeight: 800, textDecoration: "none", boxShadow: "0 8px 24px rgba(15,40,71,0.25)", transition: "all 0.3s ease", display: "inline-block" }}>Get Started →</Link>
+            <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ padding: "16px 34px", borderRadius: 12, background: NAVY, color: "white", fontSize: 16, fontWeight: 800, textDecoration: "none", boxShadow: "0 8px 24px rgba(15,40,71,0.25)", transition: "all 0.3s ease", display: "inline-block" }}>💬 Chat With Us</a>
             <Link href="/demo" style={{ padding: "16px 34px", borderRadius: 12, background: "white", border: `2px solid ${NAVY}`, color: NAVY, fontSize: 16, fontWeight: 800, textDecoration: "none", transition: "all 0.3s ease", display: "inline-block" }}>▶ Watch Demo</Link>
           </div>
           <div style={{ marginTop: 40, display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999, background: "white", border: `1px solid ${GOLD}44` }}>
@@ -132,23 +151,20 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="pricing" style={{ background: "white", padding: "100px 24px" }}>
+      <section id="plans" style={{ background: "white", padding: "100px 24px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 60 }}>
-            <div style={{ fontSize: 12, fontWeight: 900, color: GOLD, letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Pricing</div>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 44, fontWeight: 900, color: NAVY, marginBottom: 16 }}>Simple, flexible plans</h2>
-            <p style={{ fontSize: 17, color: NAVY_LIGHT, maxWidth: 600, margin: "0 auto", fontWeight: 500 }}>Choose the level of help that works for your school.</p>
+            <div style={{ fontSize: 12, fontWeight: 900, color: GOLD, letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Plans</div>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 44, fontWeight: 900, color: NAVY, marginBottom: 16 }}>Choose the level of help<br />that works for your school</h2>
+            <p style={{ fontSize: 17, color: NAVY_LIGHT, maxWidth: 600, margin: "0 auto", fontWeight: 500 }}>Pricing is customized based on your school size and needs. Contact us for a quote.</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
-            {PRICING.map((p, i) => (
-              <div key={i} className="price-card" style={{ background: p.highlight ? NAVY : "white", color: p.highlight ? "white" : NAVY, borderRadius: 22, padding: 36, border: p.highlight ? `2px solid ${GOLD}` : `1.5px solid ${GOLD}44`, position: "relative", transition: "all 0.3s ease", boxShadow: p.highlight ? "0 16px 40px rgba(15,40,71,0.25)" : "none" }}>
+            {PLANS.map((p, i) => (
+              <div key={i} className="plan-card" style={{ background: p.highlight ? NAVY : "white", color: p.highlight ? "white" : NAVY, borderRadius: 22, padding: 36, border: p.highlight ? `2px solid ${GOLD}` : `1.5px solid ${GOLD}44`, position: "relative", transition: "all 0.3s ease", boxShadow: p.highlight ? "0 16px 40px rgba(15,40,71,0.25)" : "none" }}>
                 {p.highlight && <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: GOLD, color: NAVY, padding: "5px 18px", borderRadius: 999, fontSize: 11, fontWeight: 900, letterSpacing: 1.5 }}>MOST POPULAR</div>}
                 <h3 style={{ fontSize: 13, fontWeight: 900, letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 14, color: GOLD }}>{p.name}</h3>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 6 }}>
-                  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 46, fontWeight: 900 }}>{p.price}</span>
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.7, fontWeight: 600, marginBottom: 8 }}>{p.period}</div>
-                <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 24, opacity: 0.85 }}>{p.desc}</p>
+                <p style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>{p.desc}</p>
+                <div style={{ fontSize: 12, opacity: 0.6, fontWeight: 600, marginBottom: 24, fontStyle: "italic" }}>Ideal for: {p.ideal}</div>
                 <div style={{ height: 1, background: p.highlight ? "rgba(255,255,255,0.2)" : `${GOLD}33`, marginBottom: 24 }} />
                 <ul style={{ listStyle: "none", padding: 0, marginBottom: 28 }}>
                   {p.features.map((f, j) => (
@@ -158,11 +174,15 @@ export default function HomePage() {
                   ))}
                 </ul>
                 <div style={{ display: "flex", gap: 10 }}>
-                  <Link href="/pricing" style={{ flex: 1, display: "block", textAlign: "center", padding: "14px", borderRadius: 10, background: p.highlight ? GOLD : NAVY, color: p.highlight ? NAVY : "white", fontSize: 14, fontWeight: 900, textDecoration: "none" }}>Get Access</Link>
+                  <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: "block", textAlign: "center", padding: "14px", borderRadius: 10, background: p.highlight ? GOLD : NAVY, color: p.highlight ? NAVY : "white", fontSize: 14, fontWeight: 900, textDecoration: "none" }}>Get a Quote</a>
                   <Link href="/demo" style={{ display: "block", textAlign: "center", padding: "14px 16px", borderRadius: 10, background: "transparent", border: p.highlight ? "2px solid white" : `2px solid ${NAVY}`, color: p.highlight ? "white" : NAVY, fontSize: 14, fontWeight: 900, textDecoration: "none" }}>Demo</Link>
                 </div>
               </div>
             ))}
+          </div>
+          <div style={{ textAlign: "center", marginTop: 40 }}>
+            <p style={{ fontSize: 15, color: NAVY_LIGHT, fontWeight: 600, marginBottom: 6 }}>Not sure which plan is right? We'll help you choose.</p>
+            <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" style={{ fontSize: 15, color: GOLD, fontWeight: 800, textDecoration: "none" }}>💬 Chat with us on WhatsApp →</a>
           </div>
         </div>
       </section>
@@ -172,9 +192,9 @@ export default function HomePage() {
         <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center", position: "relative" }}>
           <div style={{ fontSize: 12, fontWeight: 900, color: GOLD, letterSpacing: 4, textTransform: "uppercase", marginBottom: 14 }}>Get In Touch</div>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 44, fontWeight: 900, marginBottom: 16 }}>Ready to start?</h2>
-          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.75)", marginBottom: 40, fontWeight: 500 }}>Get instant access or talk to us directly.</p>
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.75)", marginBottom: 40, fontWeight: 500 }}>Contact us for a custom quote based on your school's needs.</p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 40 }}>
-            <Link href="/pricing" style={{ padding: "16px 32px", borderRadius: 12, background: GOLD, color: NAVY, fontSize: 16, fontWeight: 900, textDecoration: "none" }}>Get Access Now →</Link>
+            <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" style={{ padding: "16px 32px", borderRadius: 12, background: GOLD, color: NAVY, fontSize: 16, fontWeight: 900, textDecoration: "none" }}>💬 WhatsApp Us →</a>
             <Link href="/demo" style={{ padding: "16px 32px", borderRadius: 12, background: "transparent", border: "2px solid white", color: "white", fontSize: 16, fontWeight: 900, textDecoration: "none" }}>Watch Demo</Link>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20 }}>
